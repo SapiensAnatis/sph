@@ -24,17 +24,22 @@ int main(int argc, char* argv[]) {
     std::string filename;
 
     // Check if alternative filename argument was given
-    if (argc > 2) {
+    if (argc >= 2) {
         // Second argument; first is always program name
         filename = argv[1];
     } else {
         filename = "config.txt";
     }
+    
+    std::cout << "[INFO] Using config file " << filename << std::endl;
 
     std::ifstream config_stream;
     config_stream.open(filename);
 
     if (!config_stream) {
+        // The logging system is not very advanced, but hopefully using these
+        // simple tags should enable users to perform ad-hoc filtering using
+        // grep or similar
         std::cout << "[ERROR] Could not open config file " << filename <<
         " for reading. Perhaps the file could not be found, or you do not"
         " have permission to read it." << std::endl;
@@ -42,7 +47,13 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    parse_config(config_stream);
+    int cfg_read_status;
+    parse_config(config_stream, cfg_read_status);
+
+    if (cfg_read_status != 0) {
+        std::cout << "[ERROR] Something went wrong while reading the config"
+        " file. Program exiting..." << std::endl;
+    }
 
     return 0;
 }

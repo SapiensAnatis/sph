@@ -3,8 +3,8 @@
  *
  * setup.hpp defines functions implemented in read_config.cpp. As you may have
  * guessed, these relate to reading the configuration file and setting up the
- * program. It also defines a static Config class, through which these values
- * are accessed while the program is running.
+ * program. It also defines a static Config namespace, through which these
+ * values are accessed while the program is running.
  *
  * The configuration format is proprietary, and it does reinvent the wheel
  * somewhat as there are plenty of libraries out there that do this. That said,
@@ -23,6 +23,10 @@ namespace Config {
     static uint n_part; // Max: ~4 billion. No need for long in my opinion.
 };
 
-void parse_config(std::ifstream &cfg_filestream);
+// parse_config: takes in an infile stream of the config file, and attempts to
+// initialize the values in the config namespace. A status code is written to
+// the second parameter -- it's 0 if everything went okay, and 1 if something
+// went wrong.
+void parse_config(std::ifstream &cfg_filestream, int &status_code);
 
 #endif
