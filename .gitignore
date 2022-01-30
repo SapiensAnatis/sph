@@ -1,0 +1,9 @@
+# Assignment brief and reference papers
+resources/*
+
+# IDE stuff
+.vscode/*
+
+# Binaries
+*.o
+sph

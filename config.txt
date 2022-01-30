@@ -1,0 +1,10 @@
+# Somewhat proprietary config format:
+# Lines starting with a '#' (like this one!) aren't parsed
+# Lines should be structured as 'PROPERTYNAME = VALUE'
+# See readme.txt for the full list of parameters that will be looked for
+
+# The units of distance, in m, that the code will use. Parsed by: %e
+d_unit = 1
+
+# Number of particles to create at program start. Parsed by: %d. Stored in 32-bit unsigned integer (max: ~4 billion)
+n_part = 1000
