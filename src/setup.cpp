@@ -1,10 +1,13 @@
 #include "setup.hpp"
 #include <iostream>
 
-void parse_config(std::istream &cfg_stream, int &status_code) {
-    std::string l;
-    int current_line = 0;
+ConfigMap parse_config(std::istream &cfg_stream, int &status_code) {
+    ConfigMap result_map;
 
+    int current_line = 0;
+    status_code = 0;
+
+    std::string l;
     while (std::getline(cfg_stream, l)) {    
         current_line++;
 
@@ -21,7 +24,6 @@ void parse_config(std::istream &cfg_stream, int &status_code) {
                 std::cout << "[ERROR] Parsing error on line " << current_line << 
                 " of config file." << std::endl;
                 status_code = 1;
-                return;
             }
 
             propname = l.substr(0, space);
@@ -32,12 +34,12 @@ void parse_config(std::istream &cfg_stream, int &status_code) {
                 std::cout << "[ERROR] Parsing error on line " << current_line << 
                 " of config file." << std::endl;
                 status_code = 1;
-                return;
             }
             
-            std::cout << propname << " is " << propvalue << std::endl;
+            // .insert() will do nothing if the value is already in the map
+            result_map.insert(std::pair<std::string, std::string>(propname, propvalue));
         }
     }
-    
-    status_code = 0;
+
+    return result_map;
 }

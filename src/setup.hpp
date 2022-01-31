@@ -16,6 +16,8 @@
 #define setup_hpp
 
 #include <fstream>
+#include <map>
+#include <string>
 
 namespace Config {
     // Variable names correspond to parameter names in config file
@@ -23,10 +25,12 @@ namespace Config {
     static uint n_part; // Max: ~4 billion. No need for long in my opinion.
 };
 
-// parse_config: takes in an infile stream of the config file, and attempts to
-// initialize the values in the config namespace. A status code is written to
-// the second parameter -- it's 0 if everything went okay, and 1 if something
-// went wrong.
-void parse_config(std::istream &cfg_stream, int &status_code);
+typedef std::map<std::string, std::string> ConfigMap; 
+
+// parse_config: takes in an infile stream of the config file, and creates a map
+// of <propertyname, propertvalue> to be properly parsed and stored later.
+// A status code is written to the second parameter -- it's 0 if everything went
+// okay, and 1 if something went wrong.
+ConfigMap parse_config(std::istream &cfg_stream, int &status_code);
 
 #endif
