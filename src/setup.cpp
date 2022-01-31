@@ -17,7 +17,7 @@ void parse_config(std::ifstream &cfg_filestream, int &status_code) {
             space = l.find(' ');
 
             if (space == std::string::npos) {
-                // Something went wrong; no space found
+                // Error if no space found
                 std::cout << "[ERROR] Parsing error on line " << current_line << 
                 " of config file." << std::endl;
                 status_code = 1;
@@ -28,10 +28,7 @@ void parse_config(std::ifstream &cfg_filestream, int &status_code) {
             propvalue = l.substr(space + 1, l.length());
 
             if (propname.length() == 0 || propvalue.length() == 0) {
-                // Same generic error. I could go to some effort to give more
-                // detail, but the config syntax isn't terribly complicated;
-                // hopefully a simple reference to the offending line is more
-                // than enough.
+                // Error if there was a space but nothing on one side of it
                 std::cout << "[ERROR] Parsing error on line " << current_line << 
                 " of config file." << std::endl;
                 status_code = 1;

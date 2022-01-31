@@ -53,6 +53,7 @@ int main(int argc, char* argv[]) {
     if (cfg_read_status != 0) {
         std::cout << "[ERROR] Something went wrong while reading the config"
         " file. Program exiting..." << std::endl;
+        return 1;
     }
 
     return 0;
