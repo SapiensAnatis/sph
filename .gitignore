@@ -7,4 +7,6 @@ resources/*
 # Binaries
 *.o
 sph
+
+# Build artefacts
 bazel-*

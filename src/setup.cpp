@@ -1,11 +1,11 @@
 #include "setup.hpp"
 #include <iostream>
 
-void parse_config(std::ifstream &cfg_filestream, int &status_code) {
+void parse_config(std::istream &cfg_stream, int &status_code) {
     std::string l;
     int current_line = 0;
 
-    while (std::getline(cfg_filestream, l)) {    
+    while (std::getline(cfg_stream, l)) {    
         current_line++;
 
         if (l[0] != '#' && l.length() > 0) { // Ignore comments and empty lines

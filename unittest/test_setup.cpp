@@ -1,24 +1,25 @@
-#include <fstream>
+#include <sstream>
 
 #include <gtest/gtest.h>
 #include "../src/setup.hpp"
 
 TEST(SetupTest, ReadGoodConfig) {
-    std::ifstream config_stream;
-    config_stream.open("config_good.txt");
+    std::istringstream stream("good_param_1 100\ngood_param_2 200");
 
-    int cfg_read_status;
-    parse_config(config_stream, cfg_read_status);
+    int status;
+    parse_config(stream, status);
 
-    EXPECT_EQ(cfg_read_status, 0);
+    EXPECT_EQ(status, 0);
 }
 
 TEST(SetupTest, ReadBadConfig) {
-    std::ifstream config_stream;
-    config_stream.open("config_bad.txt");
+    std::istringstream stream("bad_param");
+    
+    int status;
+    parse_config(stream, status);
 
-    int cfg_read_status = 4;
-    parse_config(config_stream, cfg_read_status);
-
-    EXPECT_EQ(cfg_read_status, 1);
+    EXPECT_EQ(status, 1);
 }
+
+
+// It's not opening the files for some reason

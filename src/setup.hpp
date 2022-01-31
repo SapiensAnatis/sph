@@ -27,6 +27,6 @@ namespace Config {
 // initialize the values in the config namespace. A status code is written to
 // the second parameter -- it's 0 if everything went okay, and 1 if something
 // went wrong.
-void parse_config(std::ifstream &cfg_filestream, int &status_code);
+void parse_config(std::istream &cfg_stream, int &status_code);
 
 #endif
