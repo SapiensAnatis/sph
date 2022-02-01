@@ -1,3 +1,5 @@
+# Library excludes main.cpp and is exposed to unit testing
+
 cc_library(
     name = "sph-lib",
     srcs = ["setup.cpp"],
