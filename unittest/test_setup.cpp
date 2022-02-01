@@ -31,5 +31,8 @@ TEST(SetupTest, ReadDupedConfig) {
 TEST(SetupTest, ReadBadConfig) {
     // Should give status 1 as bad_param has no value
     std::istringstream stream("bad_param");
-    EXPECT_EXIT(parse_config(stream), testing::ExitedWithCode(1),);
+    EXPECT_EXIT(
+        parse_config(stream), testing::ExitedWithCode(1),
+        "Parsing error on line [0-9]* of config file."
+    );
 }

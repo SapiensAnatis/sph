@@ -20,7 +20,7 @@ ConfigMap parse_config(std::istream &cfg_stream) {
 
             if (space == std::string::npos) {
                 // Error if no space found
-                std::cout << "[ERROR] Parsing error on line " << current_line << " of config file." << std::endl;
+                std::cerr << "[ERROR] Parsing error on line " << current_line << " of config file.";
                 exit(1);
             }
 
@@ -29,7 +29,7 @@ ConfigMap parse_config(std::istream &cfg_stream) {
 
             if (propname.length() == 0 || propvalue.length() == 0) {
                 // Error if there was a space but nothing on one side of it
-                std::cout << "[ERROR] Parsing error on line " << current_line <<  " of config file." << std::endl;
+                std::cerr << "[ERROR] Parsing error on line " << current_line << " of config file.";
                 exit(1);
             }
 
@@ -62,12 +62,12 @@ void set_property(uint &prop, ConfigMap &config_map, const std::string &prop_nam
         try {
             prop = std::stoi(prop_value);
         } catch (const std::invalid_argument& ia) {
-            std::cout << "[ERROR] Failed to parse value '" << ia.what() << "' for property '" <<
+            std::cerr << "[ERROR] Failed to parse value '" << ia.what() << "' for property '" <<
             prop_name << "'." << std::endl;
             exit(1);
         }
     } else {
-        std::cout << "[ERROR] Failed to find a definition for property '" << prop_name << "' in the"
+        std::cerr << "[ERROR] Failed to find a definition for property '" << prop_name << "' in the"
         " config file." << std::endl;
         exit(1);
     }
