@@ -1,9 +1,9 @@
 #include <sstream>
 
 #include <gtest/gtest.h>
-#include "../src/setup.hpp"
+#include "../sph/setup.hpp"
 
-TEST(SetupTest, ReadGoodConfig) {
+TEST(ConfigMapTest, ReadGoodConfig) {
     // Simple example of proper config: does it go to expected map?
     std::istringstream stream("good_param_1 100\ngood_param_2 200");
     ConfigMap expected_map = {
@@ -16,7 +16,7 @@ TEST(SetupTest, ReadGoodConfig) {
     EXPECT_EQ(expected_map, actual_map);
 }
 
-TEST(SetupTest, ReadDupedConfig) {
+TEST(ConfigMapTest, ReadDupedConfig) {
     // Should not replace value
     std::istringstream stream("good_param_1 100\ngood_param_1 200");
     ConfigMap expected_map = {
@@ -28,11 +28,23 @@ TEST(SetupTest, ReadDupedConfig) {
     EXPECT_EQ(expected_map, actual_map);
 }
 
-TEST(SetupTest, ReadBadConfig) {
+TEST(ConfigMapTest, ReadBadConfig) {
     // Should give status 1 as bad_param has no value
     std::istringstream stream("bad_param");
     EXPECT_EXIT(
         parse_config(stream), testing::ExitedWithCode(1),
         "Parsing error on line [0-9]* of config file."
     );
+}
+
+TEST(ConfigClassTest, ReadConfigMap) {
+    ConfigMap config_map = {
+        {"n_part", "3"},
+        {"d_unit", "4"}
+    };
+
+    Config config(config_map);
+
+    EXPECT_EQ(config.n_part, 3);
+    EXPECT_EQ(config.d_unit, 4);
 }

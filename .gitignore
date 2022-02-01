@@ -7,3 +7,4 @@ resources/*
 # Build artefacts
 bazel-*
 run.sh
+test.sh
