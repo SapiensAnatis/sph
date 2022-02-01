@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
         // Second argument; first is always program name
         filename = argv[1];
     } else {
-        filename = "config.txt";ffff
+        filename = "config.txt";
     }
     
     std::cout << "[INFO] Using config file " << filename << std::endl;
