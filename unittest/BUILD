@@ -4,6 +4,6 @@ cc_test(
     srcs = ["test_setup.cpp"],
     deps = [
         "@com_google_googletest//:gtest_main",
-        "//src:sph-lib",
+        "//sph:sph-lib",
     ],
 )

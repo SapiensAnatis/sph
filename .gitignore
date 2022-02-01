@@ -10,3 +10,4 @@ sph
 
 # Build artefacts
 bazel-*
+run.sh
