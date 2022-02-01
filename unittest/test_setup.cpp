@@ -11,10 +11,8 @@ TEST(SetupTest, ReadGoodConfig) {
         {"good_param_2", "200"}
     };
 
-    int status;
-    ConfigMap actual_map = parse_config(stream, status);
+    ConfigMap actual_map = parse_config(stream);
 
-    EXPECT_EQ(status, 0);
     EXPECT_EQ(expected_map, actual_map);
 }
 
@@ -25,20 +23,13 @@ TEST(SetupTest, ReadDupedConfig) {
         {"good_param_1", "100"}
     };
 
-    int status;
-    ConfigMap actual_map = parse_config(stream, status);
+    ConfigMap actual_map = parse_config(stream);
 
-    EXPECT_EQ(status, 0);
     EXPECT_EQ(expected_map, actual_map);
 }
-
 
 TEST(SetupTest, ReadBadConfig) {
     // Should give status 1 as bad_param has no value
     std::istringstream stream("bad_param");
-    
-    int status;
-    parse_config(stream, status);
-
-    EXPECT_EQ(status, 1);
+    EXPECT_EXIT(parse_config(stream), testing::ExitedWithCode(1),);
 }

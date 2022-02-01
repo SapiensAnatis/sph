@@ -44,13 +44,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    int cfg_read_status;
-    parse_config(config_stream, cfg_read_status);
-
-    if (cfg_read_status != 0) {
-        std::cout << "[ERROR] Something went wrong while reading the config file. Program exiting..." << std::endl;
-        return 1;
-    }
+    ConfigMap config_map = parse_config(config_stream);
+    load_properties(config_map);
 
     return 0;
 }

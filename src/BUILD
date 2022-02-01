@@ -9,7 +9,7 @@ cc_library(
 
 cc_binary(
     name = "sph",
-    srcs = ["*.cpp"],
+    srcs = glob(["*.cpp"]),
     deps = [
         ":sph-lib",
     ]
