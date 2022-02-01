@@ -1,12 +1,10 @@
 #include "setup.hpp"
 #include <iostream>
 
-ConfigMap parse_config(std::istream &cfg_stream, int &status_code) {
+ConfigMap parse_config(std::istream &cfg_stream) {
     ConfigMap result_map;
 
     int current_line = 0;
-    status_code = 0;
-
     std::string l;
 
     while (std::getline(cfg_stream, l)) {    
@@ -23,7 +21,7 @@ ConfigMap parse_config(std::istream &cfg_stream, int &status_code) {
             if (space == std::string::npos) {
                 // Error if no space found
                 std::cout << "[ERROR] Parsing error on line " << current_line << " of config file." << std::endl;
-                status_code = 1;
+                exit(1);
             }
 
             propname = l.substr(0, space);
@@ -32,7 +30,7 @@ ConfigMap parse_config(std::istream &cfg_stream, int &status_code) {
             if (propname.length() == 0 || propvalue.length() == 0) {
                 // Error if there was a space but nothing on one side of it
                 std::cout << "[ERROR] Parsing error on line " << current_line <<  " of config file." << std::endl;
-                status_code = 1;
+                exit(1);
             }
 
             // What if the parameter is already in the map? Not a fatal error, but the user should
@@ -50,28 +48,46 @@ ConfigMap parse_config(std::istream &cfg_stream, int &status_code) {
     return result_map;
 }
 
-void load_properties(ConfigMap &config_map, int &status_code) {
+void load_properties(ConfigMap &config_map) {
     // This is a bit monolithic, but I can't really think of a better way of doing it.
-    set_property(Config::n_part, "n_part", config_map["n_part"]);
-    set_property(Config::d_unit, "d_unit", config_map["d_unit"]);
+    set_property(Config::n_part, config_map, "n_part");
+    set_property(Config::d_unit, config_map, "d_unit");
 }
 
-void set_property(uint &prop, const std::string &prop_name, const std::string &prop_value) {
-    try {
-        prop = std::stoi(prop_value);
-    } catch (const std::invalid_argument& ia) {
-        std::cout << "[ERROR] Failed to parse value '" << ia.what() << "' for property '" <<
-        prop_name << "'." << std::endl;
+void set_property(uint &prop, ConfigMap &config_map, const std::string &prop_name) {
+    ConfigMap::iterator it = config_map.find(prop_name);
+    if (it != config_map.end()) {
+        // Key exists
+        std::string prop_value = it->second;
+        try {
+            prop = std::stoi(prop_value);
+        } catch (const std::invalid_argument& ia) {
+            std::cout << "[ERROR] Failed to parse value '" << ia.what() << "' for property '" <<
+            prop_name << "'." << std::endl;
+            exit(1);
+        }
+    } else {
+        std::cout << "[ERROR] Failed to find a definition for property '" << prop_name << "' in the"
+        " config file." << std::endl;
         exit(1);
     }
 }
 
-void set_property(double &prop, const std::string &prop_name, const std::string &prop_value) {
-    try {
-        prop = std::stod(prop_value);
-    } catch (const std::invalid_argument& ia) {
-        std::cout << "[ERROR] Failed to parse value '" << ia.what() << "' for property '" <<
-        prop_name << "'." << std::endl;
+void set_property(double &prop, ConfigMap &config_map, const std::string &prop_name) {
+    ConfigMap::iterator it = config_map.find(prop_name);
+    if (it != config_map.end()) {
+        // Key exists
+        std::string prop_value = it->second;
+        try {
+            prop = std::stod(prop_value);
+        } catch (const std::invalid_argument& ia) {
+            std::cout << "[ERROR] Failed to parse value '" << ia.what() << "' for property '" <<
+            prop_name << "'." << std::endl;
+            exit(1);
+        }
+    } else {
+        std::cout << "[ERROR] Failed to find a definition for property '" << prop_name << "' in the"
+        " config file." << std::endl;
         exit(1);
     }
 }
