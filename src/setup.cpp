@@ -21,8 +21,7 @@ ConfigMap parse_config(std::istream &cfg_stream, int &status_code) {
 
             if (space == std::string::npos) {
                 // Error if no space found
-                std::cout << "[ERROR] Parsing error on line " << current_line << 
-                " of config file." << std::endl;
+                std::cout << "[ERROR] Parsing error on line " << current_line << " of config file." << std::endl;
                 status_code = 1;
             }
 
@@ -31,12 +30,18 @@ ConfigMap parse_config(std::istream &cfg_stream, int &status_code) {
 
             if (propname.length() == 0 || propvalue.length() == 0) {
                 // Error if there was a space but nothing on one side of it
-                std::cout << "[ERROR] Parsing error on line " << current_line << 
-                " of config file." << std::endl;
+                std::cout << "[ERROR] Parsing error on line " << current_line <<  " of config file." << std::endl;
                 status_code = 1;
             }
+
+            // What if the parameter is already in the map? Not a fatal error, but the user should
+            // be told
+            if (result_map.count(propname)) {
+                std::cout << "[WARNING] Ignoring second definition of parameter '" << propname << 
+                "' on line " << current_line << " of config file." << std::endl; 
+            }
             
-            // .insert() will do nothing if the value is already in the map
+            // .insert() will do nothing if the value is already in the map, as per the above
             result_map.insert(std::pair<std::string, std::string>(propname, propvalue));
         }
     }
