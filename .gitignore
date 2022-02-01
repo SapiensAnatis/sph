@@ -4,10 +4,6 @@ resources/*
 # IDE stuff
 .vscode/*
 
-# Binaries
-*.o
-sph
-
 # Build artefacts
 bazel-*
 run.sh
