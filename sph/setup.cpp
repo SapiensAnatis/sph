@@ -60,6 +60,8 @@ std::string Config::read_config_map(ConfigMap &config_map, const std::string &pr
         // Key exists
         return it->second;
     } else {
+        // The problem with this is it means every parameter is required...it should be fine for a
+        // simple SPH program without optional functionality
         std::cerr << "[ERROR] Failed to find a definition for property '" << prop_name << "' in the"
         " config file." << std::endl;
         exit(1);
@@ -70,7 +72,7 @@ void Config::set_property(int &prop, ConfigMap &config_map, const std::string &p
     std::string prop_value = read_config_map(config_map, prop_name);
     try {
         prop = std::stoi(prop_value);
-    } catch (const std::invalid_argument& ia) {
+    } catch (const std::invalid_argument &ia) {
         std::cerr << "[ERROR] Failed to parse value '" << ia.what() << "' for property '" <<
         prop_name << "'." << std::endl;
         exit(1);
@@ -81,7 +83,7 @@ void Config::set_property(double &prop, ConfigMap &config_map, const std::string
     std::string prop_value = read_config_map(config_map, prop_name);
     try {
         prop = std::stod(prop_value);
-    } catch (const std::invalid_argument& ia) {
+    } catch (const std::invalid_argument &ia) {
         std::cerr << "[ERROR] Failed to parse value '" << ia.what() << "' for property '" <<
         prop_name << "'." << std::endl;
         exit(1);
