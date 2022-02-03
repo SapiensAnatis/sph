@@ -3,8 +3,26 @@
 #include <gtest/gtest.h>
 #include "../sph/setup.hpp"
 
+
+// Helper method to build config file stringstreams using a vector. A bit more readable than
+// a string with a bunch of \ns in it
+std::istringstream build_config_stream(std::vector<std::string> line_vector) {
+    // istringstream is read-only, so can't accumulate onto that
+    std::string accum;
+    
+    for (std::string s : line_vector) {
+        accum += s;
+        accum += "\n";
+    }
+
+    return std::istringstream(accum);
+}
+
 TEST(ConfigClassTest, ReadConfigStream) {
-    std::istringstream stream("d_unit 2\nn_part 4");
+    std::istringstream stream = build_config_stream({
+        "d_unit 2",
+        "n_part 4"
+    });
 
     Config config(stream);
 
@@ -14,7 +32,12 @@ TEST(ConfigClassTest, ReadConfigStream) {
 
 TEST(ConfigClassTest, ReadBadConfig) {
     // Should give status 1 as bad_param has no value
-    std::istringstream stream("bad_param");
+    std::istringstream stream = build_config_stream({
+        "bad_param",
+        "d_unit 3000",
+        "n_part 4"
+    });
+
     EXPECT_EXIT(
         Config config(stream), testing::ExitedWithCode(1),
         "Parsing error on line 1 of config file."
@@ -23,7 +46,11 @@ TEST(ConfigClassTest, ReadBadConfig) {
 
 TEST(ConfigClassTest, ReadDupedConfig) {
     // Duplicated value
-    std::istringstream stream("d_unit 2\nd_unit 3000\nn_part 4");
+    std::istringstream stream = build_config_stream({
+        "d_unit 2",
+        "d_unit 3000",
+        "n_part 4"
+    });
     
     Config config(stream);
 

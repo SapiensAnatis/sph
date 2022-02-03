@@ -2,7 +2,7 @@
 
 cc_library(
     name = "sph-lib",
-    srcs = ["setup.cpp"],
+    srcs = glob(["*.cpp"]),
     hdrs = glob(["*.hpp"]),
     visibility = ["//unittest:__pkg__"],
 )
