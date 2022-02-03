@@ -19,32 +19,30 @@
 
 typedef std::map<std::string, std::string> ConfigMap; 
 
-// parse_config: takes in a stream of the config file, and creates a <string, string> map of
-// <propertyname, propertyvalue> to be properly parsed and stored by load_properties. A status code
-// is written to the second parameter -- it's 0 if everything went okay, and 1 if something went
-// wrong (e.g. parse error).
-ConfigMap parse_config(std::istream &cfg_stream);
-
-// load_properties: takes in a ConfigMap (from above) and initializes the values of all the needed
-// properties in the Config class. This is where datatype conversion from string will be performed.
-// It uses the same status code convention as above.
-void load_properties(ConfigMap &config_map);
-
-std::string read_config_map(ConfigMap &config_map, const std::string &prop_name);
-
-// Overloads of set_property. These take in a particular type of Config member by reference as well
-// as a string property value, and each overload has a different way of converting the property
-// value based on the type of the Config member.
-void set_property(int &prop, ConfigMap &config_map, const std::string &prop_name);
-void set_property(double &prop, ConfigMap &config_map, const std::string &prop_name);
-
+// Config class, used to store configuration properties. Has a constructor that takes in the
+// ConfigMap and performs datatype conversipn.
 class Config {
     public:
         // Variable names correspond to parameter names in config file
         double d_unit;
-        int n_part; // Max: ~4 billion. No need for long in my opinion.
+        int n_part; // Max: ~2 billion. No need for long in my opinion.
 
-        Config(ConfigMap);
+        // parse_config: takes in a stream of the config file, and creates a <string, string> map of
+        // <propertyname, propertyvalue> to be converted later in the Config constructor. 
+        // This could probably be private except I want to unit test it
+        static ConfigMap parse_config(std::istream &cfg_stream);
+
+        Config(std::istream &config_stream);
+    private:
+        // Method to access ConfigMap and return an error if key not found. Helps to reduce code reuse in
+        // set_property overloads.
+        static std::string read_config_map(ConfigMap &config_map, const std::string &prop_name);
+
+        // Overloads of set_property. These take in a particular type of Config member by reference as well
+        // as a string property value, and each overload has a different way of converting the property
+        // value based on the type of the Config member.
+        static void set_property(int &prop, ConfigMap &config_map, const std::string &prop_name);
+        static void set_property(double &prop, ConfigMap &config_map, const std::string &prop_name);
 };
 
 #endif

@@ -1,7 +1,13 @@
 #include <iostream>
 #include "setup.hpp"
 
-ConfigMap parse_config(std::istream &cfg_stream) {
+Config::Config(std::istream &config_stream) {
+    ConfigMap config_map = this->parse_config(config_stream);
+    set_property(this->n_part, config_map, "n_part");
+    set_property(this->d_unit, config_map, "d_unit");
+}
+
+ConfigMap Config::parse_config(std::istream &cfg_stream) {
     ConfigMap result_map;
 
     int current_line = 0;
@@ -48,7 +54,7 @@ ConfigMap parse_config(std::istream &cfg_stream) {
     return result_map;
 }
 
-std::string read_config_map(ConfigMap &config_map, const std::string &prop_name) {
+std::string Config::read_config_map(ConfigMap &config_map, const std::string &prop_name) {
     ConfigMap::iterator it = config_map.find(prop_name);
     if (it != config_map.end()) {
         // Key exists
@@ -60,7 +66,7 @@ std::string read_config_map(ConfigMap &config_map, const std::string &prop_name)
     }
 }
 
-void set_property(int &prop, ConfigMap &config_map, const std::string &prop_name) {
+void Config::set_property(int &prop, ConfigMap &config_map, const std::string &prop_name) {
     std::string prop_value = read_config_map(config_map, prop_name);
     try {
         prop = std::stoi(prop_value);
@@ -71,7 +77,7 @@ void set_property(int &prop, ConfigMap &config_map, const std::string &prop_name
     } 
 }
 
-void set_property(double &prop, ConfigMap &config_map, const std::string &prop_name) {
+void Config::set_property(double &prop, ConfigMap &config_map, const std::string &prop_name) {
     std::string prop_value = read_config_map(config_map, prop_name);
     try {
         prop = std::stod(prop_value);
@@ -80,9 +86,4 @@ void set_property(double &prop, ConfigMap &config_map, const std::string &prop_n
         prop_name << "'." << std::endl;
         exit(1);
     }
-}
-
-Config::Config(ConfigMap config_map) {
-    set_property(this->n_part, config_map, "n_part");
-    set_property(this->d_unit, config_map, "d_unit");
 }

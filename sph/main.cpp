@@ -46,8 +46,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    ConfigMap config_map = parse_config(config_stream);
-    Config config(config_map);
+    Config config(config_stream);
 
     std::cout << config.n_part;
 
