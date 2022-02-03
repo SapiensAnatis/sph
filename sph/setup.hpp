@@ -27,13 +27,13 @@ class Config {
         double d_unit;
         int n_part; // Max: ~2 billion. No need for long in my opinion.
 
+        Config(std::istream &config_stream);
+    private:
         // parse_config: takes in a stream of the config file, and creates a <string, string> map of
         // <propertyname, propertyvalue> to be converted later in the Config constructor. 
         // This could probably be private except I want to unit test it
         static ConfigMap parse_config(std::istream &cfg_stream);
-
-        Config(std::istream &config_stream);
-    private:
+        
         // Method to access ConfigMap and return an error if key not found. Helps to reduce code reuse in
         // set_property overloads.
         static std::string read_config_map(ConfigMap &config_map, const std::string &prop_name);
