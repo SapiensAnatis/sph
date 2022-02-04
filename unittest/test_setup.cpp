@@ -26,7 +26,7 @@ TEST(ConfigClassTest, ReadConfigStream) {
         "limit 1"
     });
 
-    Config config(stream);
+    auto config = Config(stream);
 
     EXPECT_EQ(config.n_part, 4);
     EXPECT_EQ(config.d_unit, 3);
@@ -52,7 +52,7 @@ TEST(ConfigClassTest, ReadBadConfig) {
 
 TEST(ConfigClassTest, ReadDupedConfig) {
     // Duplicated value
-   std::istringstream stream = build_config_stream({
+    std::istringstream stream = build_config_stream({
         "n_part 4",
         "d_unit 3",
         "t_unit 2",
@@ -60,7 +60,7 @@ TEST(ConfigClassTest, ReadDupedConfig) {
         "d_unit 300000"
     });
     
-    Config config(stream);
+    auto config = Config(stream);
 
     EXPECT_EQ(config.n_part, 4);
     EXPECT_EQ(config.d_unit, 3);
@@ -74,4 +74,40 @@ TEST(ConfigClassTest, ReadMissingConfig) {
         Config config(stream), testing::ExitedWithCode(1),
         "Failed to find a definition for property 'n_part'"
     );
+}
+
+TEST(ParticleSetup, CorrectNParticles) {
+    // Check the right number of particles are made
+    std::istringstream stream = build_config_stream({
+        "n_part 20",
+        "d_unit 1",
+        "t_unit 1",
+        "limit 1"
+    });
+
+    auto config = Config(stream);
+    ParticleVector pv = init_particles(config);
+
+    EXPECT_EQ(pv.size(), 20);
+}
+
+// The random distribution means this test may sporadically fail. In that sense, it is probably
+// poorly designed...
+TEST(ParticleSetup, WithinBounds) {
+    // Check that all particles are within the specified boundary
+    std::istringstream stream = build_config_stream({
+        "n_part 20",
+        "d_unit 2",
+        "t_unit 1",
+        "limit 2"
+    });
+
+    auto config = Config(stream);
+    ParticleVector pv = init_particles(config);
+
+    double max_expected = config.limit * config.d_unit;
+
+    for (Particle p : pv) {
+        EXPECT_LE(std::abs(p.pos), max_expected);
+    }
 }
