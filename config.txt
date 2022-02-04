@@ -3,8 +3,13 @@
 # Lines should be structured as 'PROPERTYNAME VALUE' (i.e. separated by 1 space)
 # See readme.txt for the full list of parameters that will be looked for
 
-# The units of distance, in m, that the code will use. Parsed by: %e
-d_unit 1
+# Number of particles to create at program start. Parsed by: %d. Stored in: int.
+n_part 10
 
-# Number of particles to create at program start. Parsed by: %d. Stored in 32-bit unsigned integer (max: ~4 billion)
-n_part 1000
+# The units of distance, in m, that the code will use. Parsed by: %e. Stored in: double.
+d_unit 1
+# The units of time, in seconds, that the code will use. Parsed by: %e. Stored in: double.
+t_unit 3e6
+
+# The size of the boundary, as it extends either side from the origin, in d_unit
+limit 1

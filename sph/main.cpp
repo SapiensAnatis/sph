@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
         // Second argument; first is always program name
         filename = argv[1];
     } else {
-        filename = "config.txt";
+        filename = "./config.txt";
     }
     
     std::cout << "[INFO] Using config file " << filename << std::endl;
@@ -48,10 +48,7 @@ int main(int argc, char* argv[]) {
 
     Config config(config_stream);
 
-    std::cout << config.n_part;
+    init_particles(config);
 
     return 0;
 }
-
-// This is in main.cpp rather than setup.cpp as static variables are still only file-scoped, so
-// changes to Config:: members in setup.cpp would not be reflected here.

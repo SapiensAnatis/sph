@@ -13,27 +13,32 @@
 #ifndef setup_hpp // Include guard
 #define setup_hpp
 
+#include <string>
 #include <fstream>
 #include <map>
-#include <string>
+#include <vector>
+
+#include "particle.hpp"
 
 typedef std::map<std::string, std::string> ConfigMap; 
+typedef std::vector<Particle> ParticleVector;
 
 // Config class, used to store configuration properties. Has a constructor that takes in the
 // ConfigMap and performs datatype conversipn.
 class Config {
     public:
         // Variable names correspond to parameter names in config file
+        int n_part;
         double d_unit;
-        int n_part; // Max: ~2 billion. No need for long in my opinion.
+        double t_unit;
+        double limit;
 
         Config(std::istream &config_stream);
     private:
         // parse_config: takes in a stream of the config file, and creates a <string, string> map of
         // <propertyname, propertyvalue> to be converted later in the Config constructor. 
-        // This could probably be private except I want to unit test it
         static ConfigMap parse_config(std::istream &cfg_stream);
-        
+
         // Method to access ConfigMap and return an error if key not found. Helps to reduce code reuse in
         // set_property overloads.
         static std::string read_config_map(ConfigMap &config_map, const std::string &prop_name);
@@ -44,5 +49,8 @@ class Config {
         static void set_property(int &prop, ConfigMap &config_map, const std::string &prop_name);
         static void set_property(double &prop, ConfigMap &config_map, const std::string &prop_name);
 };
+
+// Method to set up initial particle array
+ParticleVector init_particles(Config c);
 
 #endif

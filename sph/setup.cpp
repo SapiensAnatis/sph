@@ -1,10 +1,15 @@
 #include <iostream>
+#include <random>
+#include <ctime>
+
 #include "setup.hpp"
 
 Config::Config(std::istream &config_stream) {
     ConfigMap config_map = this->parse_config(config_stream);
     set_property(this->n_part, config_map, "n_part");
     set_property(this->d_unit, config_map, "d_unit");
+    set_property(this->t_unit, config_map, "t_unit");
+    set_property(this->limit, config_map, "limit");
 }
 
 ConfigMap Config::parse_config(std::istream &cfg_stream) {
@@ -88,4 +93,21 @@ void Config::set_property(double &prop, ConfigMap &config_map, const std::string
         prop_name << "'." << std::endl;
         exit(1);
     }
+}
+
+ParticleVector init_particles(Config c)
+{
+    ParticleVector result(c.n_part);
+    double max_x = c.limit * c.d_unit;
+    double min_x = -max_x;
+
+    // Ensure randomness of position generation
+    auto eng = std::default_random_engine(std::random_device{}());
+    auto rand = std::uniform_real_distribution<double>(min_x, max_x);
+
+    for (int i = 0; i < c.n_part; i++) {
+        result[i].pos = rand(eng);
+    }
+
+    return result;
 }
