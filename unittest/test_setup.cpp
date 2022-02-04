@@ -20,14 +20,18 @@ std::istringstream build_config_stream(std::vector<std::string> line_vector) {
 
 TEST(ConfigClassTest, ReadConfigStream) {
     std::istringstream stream = build_config_stream({
-        "d_unit 2",
-        "n_part 4"
+        "n_part 4",
+        "d_unit 3",
+        "t_unit 2",
+        "limit 1"
     });
 
     Config config(stream);
 
-    EXPECT_EQ(config.d_unit, 2);
     EXPECT_EQ(config.n_part, 4);
+    EXPECT_EQ(config.d_unit, 3);
+    EXPECT_EQ(config.t_unit, 2);
+    EXPECT_EQ(config.limit, 1);
 }
 
 TEST(ConfigClassTest, ReadBadConfig) {
@@ -35,7 +39,9 @@ TEST(ConfigClassTest, ReadBadConfig) {
     std::istringstream stream = build_config_stream({
         "bad_param",
         "d_unit 3000",
-        "n_part 4"
+        "n_part 4",
+        "t_unit 2",
+        "limit 1"
     });
 
     EXPECT_EXIT(
@@ -46,20 +52,22 @@ TEST(ConfigClassTest, ReadBadConfig) {
 
 TEST(ConfigClassTest, ReadDupedConfig) {
     // Duplicated value
-    std::istringstream stream = build_config_stream({
-        "d_unit 2",
-        "d_unit 3000",
-        "n_part 4"
+   std::istringstream stream = build_config_stream({
+        "n_part 4",
+        "d_unit 3",
+        "t_unit 2",
+        "limit 1",
+        "d_unit 300000"
     });
     
     Config config(stream);
 
-    EXPECT_EQ(config.d_unit, 2);
     EXPECT_EQ(config.n_part, 4);
+    EXPECT_EQ(config.d_unit, 3);
 }
 
 TEST(ConfigClassTest, ReadMissingConfig) {
-    // Missing value
+    // Missing value(s)
     std::istringstream stream("d_unit 2");
     
     EXPECT_EXIT(
