@@ -9,31 +9,41 @@
 
 #include <vector>
 
-
 enum ParticleType {
     Alive,
     Dead,
     Ghost
 };
 
+// 'global' particle counter, so creator of Particle doesn't have to
+// keep track
+static int _particle_counter = 0;
+
 struct Particle {
-    /* 1-dimensional values */
+    const int id; // Unique numerical identifier
+
     double pos;
     double vel;
 
     double mass;
     double u; // energy
-
     double density;
 
-    // Ctor needs to take 0 arguments so we can initialize a vector of n Particles
+    ParticleType type;
+
     Particle(double pos, double vel)
-        : pos(pos), vel(vel), mass(1), u(0)
+        : id(_particle_counter), pos(pos), vel(vel), mass(1), u(0)
     {
-        
+        _particle_counter++;
     }
 
-    ParticleType type;
+    // Equality operator
+    bool operator ==(Particle p) {
+        // Check id
+        return (this->id == p.id);
+    }
 };
+
+typedef std::vector<Particle> ParticleVector;
 
 #endif
