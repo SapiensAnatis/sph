@@ -9,7 +9,7 @@ n_part 10
 # The units of distance, in m, that the code will use.
 d_unit 1
 # The units of time, in seconds, that the code will use.
-t_unit 3e6
+t_unit 1
 
 # The size of the boundary which extends either side of the origin,.
 limit 1

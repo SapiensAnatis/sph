@@ -15,8 +15,7 @@ enum ParticleType {
     Ghost
 };
 
-// 'global' particle counter, so creator of Particle doesn't have to
-// keep track
+// 'global' particle counter, so creator of Particle doesn't have to keep track
 static int _particle_counter = 0;
 
 struct Particle {
@@ -37,10 +36,10 @@ struct Particle {
         _particle_counter++;
     }
 
-    // Equality operator
-    bool operator ==(Particle p) {
+    // Inequality operator
+    bool operator !=(Particle p) {
         // Check id
-        return (this->id == p.id);
+        return (this->id != p.id);
     }
 };
 
