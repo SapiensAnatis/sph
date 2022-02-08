@@ -1,3 +1,11 @@
+/* 
+ * PHYM004 Project 2 / Jay Malhotra
+ *
+ * setup.cpp implements the functions from setup.hpp -- primarily the Config class methods and
+ * constructor.
+ */
+
+
 #include <iostream>
 #include <random>
 #include <ctime>
@@ -10,6 +18,7 @@ Config::Config(std::istream &config_stream) {
     set_property(this->d_unit, config_map, "d_unit");
     set_property(this->t_unit, config_map, "t_unit");
     set_property(this->limit, config_map, "limit");
+    set_property(this->v_0, config_map, "v_0");
 }
 
 ConfigMap Config::parse_config(std::istream &cfg_stream) {
@@ -110,12 +119,14 @@ ParticleVector init_particles(Config c)
     for (int i = 0; i < c.n_part; i++) {
         double pos = rand(eng);
         // +v_0 if pos negative, -v_0 otherwise
-        double vel = (pos < 0) ? v_0 : -v_0;
+        double vel = (pos < 0) ? c.v_0 : -c.v_0;
 
         result.push_back(Particle(pos, vel));
 
-        std::cout << pos << " | " << vel << std::endl;
+        std::cout << result[i].pos << " | " << result[i].vel << std::endl;
     }
+
+    // TODO: Initialize ghost particles near boundaries
 
     return result;
 }

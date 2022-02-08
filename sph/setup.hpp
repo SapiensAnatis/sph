@@ -23,8 +23,7 @@
 // Configuration properties that are compiled into the code
 const double v_0 = 10;
 
-typedef std::map<std::string, std::string> ConfigMap; 
-typedef std::vector<Particle> ParticleVector;
+typedef std::map<std::string, std::string> ConfigMap;
 
 // Config class, used to store configuration properties. Has a constructor that takes in the
 // ConfigMap and performs datatype conversipn.
@@ -35,6 +34,7 @@ class Config {
         double d_unit;
         double t_unit;
         double limit;
+        double v_0;
 
         Config(std::istream &config_stream);
     private:

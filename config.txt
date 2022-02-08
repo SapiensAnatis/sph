@@ -11,5 +11,8 @@ d_unit 1
 # The units of time, in seconds, that the code will use.
 t_unit 3e6
 
-# The size of the boundary which extends either side of the origin, in units of d_unit. 
+# The size of the boundary which extends either side of the origin,.
 limit 1
+
+# The initial velocity to give to particles when setting up the calculation.
+v_0 12
