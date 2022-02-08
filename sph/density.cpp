@@ -30,7 +30,8 @@ double DensityCalculator::smoothing_length() {
 
 double DensityCalculator::kernel(double q) {
     double w;
-    double sigma = 2/3;
+    double sigma = 2.0/3.0;
+
     // Third-order Schoenberg B-spline (M_4), as detailed in Price (2010) pg. 3.
     if (q < 1) {
         w = 0.25 * std::pow(2 - q, 3) - std::pow(1 - q, 3);

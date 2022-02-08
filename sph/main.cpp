@@ -16,10 +16,10 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <chrono>
 
 #include "setup.hpp"
-
-void load_properties(ConfigMap &config_map);
+#include "density.hpp"
 
 int main(int argc, char* argv[]) {
     std::string filename;
@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
         filename = "./config.txt";
     }
     
-    std::cout << "[INFO] Using config file " << filename << std::endl;
+    // std::cout << "[INFO] Using config file " << filename << std::endl;
 
     std::ifstream config_stream;
     config_stream.open(filename);
@@ -46,9 +46,29 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    Config config(config_stream);
+    auto config = Config(config_stream);
 
-    init_particles(config);
+    ParticleVector pv = init_particles(config);
+
+    auto d_calc = DensityCalculator(config);
+    auto outstream = std::ofstream("/home/jay/Dropbox/University/Y4/PHYM004/sph/densities.txt");
+    outstream << "# Code units are " << config.d_unit << " for distance and " << config.t_unit << " for time." << std::endl;
+    outstream << "# Each line is one particle." << std::endl;
+    outstream << "# Column defs: position (x), density" << std::endl;
+
+    auto start = std::chrono::high_resolution_clock::now();
+    for (Particle p : pv) {
+        // Calculate density at each particle
+        d_calc(p, pv);
+
+        outstream << p.pos << "\t" << p.density << std::endl;
+    }
+
+    // I'm usually against `using namespace`s but these type names are making me reconsider...
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+
+    std::cout << duration.count() << std::endl;
 
     return 0;
 }

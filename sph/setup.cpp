@@ -123,7 +123,7 @@ ParticleVector init_particles(Config c)
 
         result.push_back(Particle(pos, vel));
 
-        std::cout << result[i].pos << " | " << result[i].vel << std::endl;
+        // std::cout << result[i].pos << " | " << result[i].vel << std::endl;
     }
 
     // TODO: Initialize ghost particles near boundaries
