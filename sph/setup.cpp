@@ -97,7 +97,9 @@ void Config::set_property(double &prop, ConfigMap &config_map, const std::string
 
 ParticleVector init_particles(Config c)
 {
-    ParticleVector result(c.n_part);
+    ParticleVector result;
+    result.reserve(c.n_part);
+
     double max_x = c.limit * c.d_unit;
     double min_x = -max_x;
 
@@ -106,7 +108,13 @@ ParticleVector init_particles(Config c)
     auto rand = std::uniform_real_distribution<double>(min_x, max_x);
 
     for (int i = 0; i < c.n_part; i++) {
-        result[i].pos = rand(eng);
+        double pos = rand(eng);
+        // +v_0 if pos negative, -v_0 otherwise
+        double vel = (pos < 0) ? v_0 : -v_0;
+
+        result.push_back(Particle(pos, vel));
+
+        std::cout << pos << " | " << vel << std::endl;
     }
 
     return result;

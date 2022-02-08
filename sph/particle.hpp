@@ -24,10 +24,14 @@ struct Particle {
     double mass;
     double u; // energy
 
+    double density;
+
     // Ctor needs to take 0 arguments so we can initialize a vector of n Particles
-    Particle()
-        : pos(0), vel(0), mass(0), u(0)
-    {}
+    Particle(double pos, double vel)
+        : pos(pos), vel(vel), mass(1), u(0)
+    {
+        
+    }
 
     ParticleType type;
 };

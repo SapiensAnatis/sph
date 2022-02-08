@@ -20,6 +20,9 @@
 
 #include "particle.hpp"
 
+// Configuration properties that are compiled into the code
+const double v_0 = 10;
+
 typedef std::map<std::string, std::string> ConfigMap; 
 typedef std::vector<Particle> ParticleVector;
 
