@@ -4,7 +4,16 @@ resources/*
 # IDE stuff
 .vscode/*
 
+# Temporary files
+*.sh~
+
 # Build artefacts
 bazel-*
 run.sh
 test.sh
+
+# Profiling
+profiling/*
+
+# Plots
+plots/*
