@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
         // Calculate density at each particle
         d_calc(p, pv);
 
-        outstream << p.pos << "\t" << p.density << std::endl;
+        //outstream << p.pos << "\t" << p.density << std::endl;
     }
 
     // I'm usually against `using namespace`s but these type names are making me reconsider...
