@@ -8,3 +8,12 @@ resources/*
 bazel-*
 run.sh
 test.sh
+
+# Temperary files
+*.sh~
+
+# Data
+data/*
+plots/*
+*.png
+densities.txt
