@@ -4,7 +4,7 @@
 # See readme.txt for the full list of parameters that will be looked for
 
 # Number of particles to create at program start.
-n_part 10000
+n_part 5000
 
 # The units of distance, in m, that the code will use.
 d_unit 1

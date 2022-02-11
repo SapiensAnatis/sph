@@ -13,7 +13,7 @@ run.sh
 test.sh
 
 # Profiling
-profiling/*
+data/*
 
 # Plots
-plots/*
+*.png
