@@ -18,7 +18,7 @@ class Kernel {
         // grad(W)
         static double d_kernel(double q);
         // h
-        static double smoothing_length(Config c);
+        static double smoothing_length(const Config &c);
 };
 
 #endif

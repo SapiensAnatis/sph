@@ -23,6 +23,7 @@ struct Particle {
 
     double pos;
     double vel;
+    double acc;
 
     double mass;
     double u; // energy
@@ -31,7 +32,7 @@ struct Particle {
     ParticleType type;
 
     Particle(double pos, double vel)
-        : id(_particle_counter), pos(pos), vel(vel), mass(1), u(0)
+        : id(_particle_counter), pos(pos), vel(vel), acc(0), mass(1), u(0)
     {
         _particle_counter++;
     }

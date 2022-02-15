@@ -5,7 +5,6 @@
  */
 
 #include <cmath>
-
 #include "kernel.hpp"
 
 double Kernel::kernel(double q) {
@@ -43,6 +42,6 @@ double Kernel::d_kernel(double q) {
 }
 
 // This returns a constant for now, but may later use variable smoothing lengths
-double Kernel::smoothing_length(Config c) {
+double Kernel::smoothing_length(const Config &c) {
     return c.d_unit;
 }
