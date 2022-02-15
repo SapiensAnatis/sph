@@ -23,11 +23,6 @@ class DensityCalculator {
 
         void operator()(Particle &p, const ParticleVector &p_vec);
         DensityCalculator(Config c) : config(c) {};
-    
-    private:
-        // w(q)
-        double kernel(double q);
-        double smoothing_length();
 };
 
 #endif
