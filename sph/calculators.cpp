@@ -54,7 +54,7 @@ void AccelerationCalculator::operator()(Particle &p_i, const ParticleVector &p_v
         }
     }
 
-    return acc;
+    p_i.acc = acc;
 }
 
 double AccelerationCalculator::pressure_isothermal(const Particle &p) {
