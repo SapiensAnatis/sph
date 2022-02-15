@@ -28,8 +28,13 @@ class AccelerationCalculator {
     public:
         const Config &config;
 
+        // Artificial viscosity params
+        const double alpha = 1;
+        const double beta = 2;
+        const double eta_coeff = 0.01; // multiplied by h^2 in viscosity
+
         // Equation 2.27 of Bate thesis
-        void operator()(Particle &p, const ParticleVector &p_vec);
+        void operator()(Particle &p_i, const ParticleVector &p_vec);
         AccelerationCalculator(const Config &c) : config(c) {};
 
     private:
@@ -43,10 +48,39 @@ class AccelerationCalculator {
          * quickly for a simulation with many thousands of particles.
          */
 
-        // Calculate pressure using isothermal equation of state (Bate thesis 2.22)
-        double pressure_isothermal(const Particle &p);
+        /* Calculate pressure using isothermal equation of state (Bate thesis 2.22)
+         * Parameters:
+         *      p: calculate the pressure using the density estimate at this particle
+         *      c_s: sound speed
+         */
+        double pressure_isothermal(const Particle &p, double c_s);
+        
         // Get sound speed -- just constant value, but disentangled from method to be easily changed
         double sound_speed();
+        
+        // 
+        
+        /*
+         * Get artificial viscosity Π_ij between two particles. 
+         *
+         * Parameters:
+         *      p_i: first particle,
+         *      p_j: second particle
+         *      r_ij: distance between first and second particle
+         *      h: smoothing length
+         *      c_s: sound speed
+         * 
+         * r_ij and h, and c_s are parameters, rather than calculated insitu, as when this method is
+         * called in operator(), they have already been calculated for the pressure, so we reuse
+         * them.
+         */
+        double artificial_viscosity(
+            const Particle &p_i, 
+            const Particle &p_j, 
+            double r_ij,
+            double h,
+            double c_s
+        );
 };
 
 #endif
