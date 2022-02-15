@@ -21,15 +21,32 @@ class DensityCalculator {
         const Config &config;
 
         void operator()(Particle &p, const ParticleVector &p_vec);
-        DensityCalculator(Config &c) : config(c) {};
+        DensityCalculator(const Config &c) : config(c) {};
 };
 
 class AccelerationCalculator {
     public:
         const Config &config;
 
+        // Equation 2.27 of Bate thesis
         void operator()(Particle &p, const ParticleVector &p_vec);
-        AccelerationCalculator(Config &c) : config(c) {};
+        AccelerationCalculator(const Config &c) : config(c) {};
+
+    private:
+        /*
+         * These 'intermediate quantities' could have their own class as well as be properties of
+         * Particle. After all, density was -- so why not everything else?
+         * 
+         * I decided against this because density is probably the only quantity that would have to
+         * be analyzed (as per the project brief). Also, having extraneous fields on the Particle
+         * would increase the memory footprint for each particle slightly, and this would accumulate
+         * quickly for a simulation with many thousands of particles.
+         */
+
+        // Calculate pressure using isothermal equation of state (Bate thesis 2.22)
+        double pressure_isothermal(const Particle &p);
+        // Get sound speed -- just constant value, but disentangled from method to be easily changed
+        double sound_speed();
 };
 
 #endif
