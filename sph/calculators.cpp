@@ -1,16 +1,19 @@
 /* 
  * PHYM004 Project 2 / Jay Malhotra
  *
- * density.cpp implements the class methods defined in density.hpp.
+ * calculators.cpp implements the class methods defined in calculators.hpp.
  */
 
 #include <cmath>
+#include <exception>
 
-#include "density.hpp"
+#include "calculators.hpp"
 #include "kernel.hpp"
 
+#pragma region DensityCalculator
+
 void DensityCalculator::operator()(Particle &p, const ParticleVector &p_vec) {
-    double h = smoothing_length();
+    double h = Kernel::smoothing_length(this->config);
     double density = 0;
 
     for (Particle p_i : p_vec) {
@@ -24,3 +27,12 @@ void DensityCalculator::operator()(Particle &p, const ParticleVector &p_vec) {
 
     p.density = density;
 }
+
+#pragma endregion
+#pragma region MomentumCalculator
+
+void AccelerationCalculator::operator()(Particle &p, const ParticleVector &p_vec) {
+    throw std::logic_error("Not implemented yet!");
+}
+
+#pragma endregion
