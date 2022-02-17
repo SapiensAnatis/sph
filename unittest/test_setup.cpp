@@ -31,6 +31,7 @@ TEST(ConfigClassTest, ReadConfigStream) {
         "n_part 4",
         "d_unit 3",
         "t_unit 2",
+        "mass 10",
         "limit 1",
         "v_0 8",
         "smoothing_length 1"
@@ -41,6 +42,7 @@ TEST(ConfigClassTest, ReadConfigStream) {
     EXPECT_EQ(config.n_part, 4);
     EXPECT_EQ(config.d_unit, 3);
     EXPECT_EQ(config.t_unit, 2);
+    EXPECT_EQ(config.mass, 10);
     EXPECT_EQ(config.limit, 1);
     EXPECT_EQ(config.v_0, 8);
     EXPECT_EQ(config.smoothing_length, 1);
@@ -52,6 +54,7 @@ TEST(ConfigClassTest, ReadBadConfig) {
         "bad_param",
         "d_unit 3000",
         "n_part 4",
+        "mass 1"
         "t_unit 2",
         "limit 1",
         "v_0 10",
@@ -70,6 +73,7 @@ TEST(ConfigClassTest, ReadDupedConfig) {
         "n_part 4",
         "d_unit 3",
         "t_unit 2",
+        "mass 10",
         "limit 1",
         "d_unit 300000",
         "v_0 12",
@@ -100,6 +104,7 @@ TEST(ParticleSetup, CorrectNParticles) {
         "n_part 20",
         "d_unit 1",
         "t_unit 1",
+        "mass 10",
         "limit 1",
         "v_0 10",
         "smoothing_length 1"
@@ -118,6 +123,7 @@ TEST(ParticleSetup, CorrectVZero) {
         "n_part 20",
         "d_unit 1",
         "t_unit 1",
+        "mass 10",
         "limit 1",
         "v_0 12",
         "smoothing_length 1"

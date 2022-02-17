@@ -33,6 +33,7 @@ class Config {
         int n_part;
         double d_unit;
         double t_unit;
+        double mass;
         double limit;
         double v_0;
         double smoothing_length;

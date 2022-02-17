@@ -20,19 +20,19 @@ static int _particle_counter = 0;
 
 struct Particle {
     const int id; // Unique numerical identifier
+    const double mass;
 
     double pos;
     double vel;
     double acc;
 
-    double mass;
     double u; // energy
     double density;
 
     ParticleType type;
 
-    Particle(double pos, double vel)
-        : id(_particle_counter), pos(pos), vel(vel), acc(0), mass(1), u(0)
+    Particle(double pos, double vel, double mass)
+        : id(_particle_counter), mass(mass), pos(pos), vel(vel), acc(0), u(0), density(0)
     {
         _particle_counter++;
     }

@@ -17,6 +17,7 @@ Config::Config(std::istream &config_stream) {
     
     set_property(this->n_part, config_map, "n_part");
     set_property(this->d_unit, config_map, "d_unit");
+    set_property(this->mass, config_map, "mass");
     set_property(this->t_unit, config_map, "t_unit");
     set_property(this->limit, config_map, "limit");
     set_property(this->v_0, config_map, "v_0");
@@ -123,7 +124,7 @@ ParticleVector init_particles(Config c)
         // +v_0 if pos negative, -v_0 otherwise
         double vel = (pos < 0) ? c.v_0 : -c.v_0;
 
-        result.push_back(Particle(pos, vel));
+        result.push_back(Particle(pos, vel, c.mass));
 
         // std::cout << result[i].pos << " | " << result[i].vel << std::endl;
     }
