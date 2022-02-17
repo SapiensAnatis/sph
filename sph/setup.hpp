@@ -39,6 +39,8 @@ class Config {
         double smoothing_length;
 
         Config(std::istream &config_stream);
+        // Default constructor for unit tests
+        Config() {}
     private:
         // parse_config: takes in a stream of the config file, and creates a <string, string> map of
         // <propertyname, propertyvalue> to be converted later in the Config constructor. 
