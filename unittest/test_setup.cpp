@@ -43,7 +43,7 @@ TEST(ConfigClassTest, ReadConfigStream) {
     EXPECT_EQ(config.t_unit, 2);
     EXPECT_EQ(config.limit, 1);
     EXPECT_EQ(config.v_0, 8);
-    EXPECT_EQ(config.smoothing_length, 1*config.d_unit);
+    EXPECT_EQ(config.smoothing_length, 1);
 }
 
 TEST(ConfigClassTest, ReadBadConfig) {
