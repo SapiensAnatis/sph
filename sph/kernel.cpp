@@ -43,5 +43,5 @@ double Kernel::d_kernel(double q) {
 
 // This returns a constant for now, but may later use variable smoothing lengths
 double Kernel::smoothing_length(const Config &c) {
-    return c.d_unit;
+    return c.smoothing_length * c.d_unit;
 }

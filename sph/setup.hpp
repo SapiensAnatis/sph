@@ -35,6 +35,7 @@ class Config {
         double t_unit;
         double limit;
         double v_0;
+        double smoothing_length;
 
         Config(std::istream &config_stream);
     private:

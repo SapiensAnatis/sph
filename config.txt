@@ -1,7 +1,6 @@
 # Somewhat proprietary config format:
 # Lines starting with a '#' (like this one!) aren't parsed
 # Lines should be structured as 'PROPERTYNAME VALUE' (i.e. separated by 1 space)
-# See readme.txt for the full list of parameters that will be looked for
 
 # Number of particles to create at program start.
 n_part 10
@@ -11,8 +10,18 @@ d_unit 1
 # The units of time, in seconds, that the code will use.
 t_unit 1
 
-# The size of the boundary which extends either side of the origin,.
+# Properties from beyond here are specified in the above code units!
+
+# Boundary size -- as measured from either side of the origin (so the total width of the space will 
+# be twice this value)
 limit 1
 
-# The initial velocity to give to particles when setting up the calculation.
+# The initial velocity to give to particles when setting up the calculation
 v_0 12
+
+# The smoothing length
+smoothing_length 1
+
+# The initial timestep to use for the simulation
+# To be integrated later
+# t_i = 0.1

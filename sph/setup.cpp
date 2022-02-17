@@ -14,11 +14,13 @@
 
 Config::Config(std::istream &config_stream) {
     ConfigMap config_map = this->parse_config(config_stream);
+    
     set_property(this->n_part, config_map, "n_part");
     set_property(this->d_unit, config_map, "d_unit");
     set_property(this->t_unit, config_map, "t_unit");
     set_property(this->limit, config_map, "limit");
     set_property(this->v_0, config_map, "v_0");
+    set_property(this->smoothing_length, config_map, "smoothing_length");
 }
 
 ConfigMap Config::parse_config(std::istream &cfg_stream) {
