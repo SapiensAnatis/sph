@@ -19,7 +19,7 @@
 #include <chrono>
 
 #include "setup.hpp"
-#include "density.hpp"
+#include "calculators.hpp"
 
 int main(int argc, char* argv[]) {
     std::string filename;
