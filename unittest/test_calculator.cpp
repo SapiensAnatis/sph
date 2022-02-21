@@ -35,6 +35,7 @@ class CalcTestFixture : public ::testing::Test {
             this->config.limit = 1;
             this->config.v_0 = 10;
             this->config.smoothing_length = 1;
+            this->config.pressure_calc = Isothermal;
         }
 };
 
@@ -51,4 +52,43 @@ TEST_F(CalcTestFixture, DensityCalc) {
     EXPECT_FLOAT_EQ(p_vec[2].density, 31.0/48.0);
 }
 
-// TODO: Acceleration calculation test
+/*
+TEST_F(CalcTestFixture, AccelerationCalc) {
+    auto ac = AccelerationCalculator(config);
+    // Note that the test fixture is re-constructed for each test; there is no persistency between
+    // test suites. So we need to set the densities to start with. We use fixed values rather than
+    // DensityCalculator, so this one won't fail if the density calculation starts to fail.
+    p_vec[0].density = 31.0/48.0;
+    p_vec[1].density = 23.0/24.0;
+    p_vec[2].density = 31.0/48.0;
+
+    // Hand-calculated isothermal pressures for c_s = 10
+    double P_0 = 100 * p_vec[0].density;
+    double P_1 = 100 * p_vec[1].density;
+    double P_2 = 100 * p_vec[2].density;
+
+    // grad_W(0.5)
+    double g_W_0p5 = -0.625;
+    // grad_W(1)
+    double g_W_1 = -0.5;
+
+    // Artificial viscosity
+    // _1: Between central particle and either edge particle
+    // _2: Between both edge particles
+
+    
+    for (Particle &p : p_vec) {
+        ac(p, p_vec);
+    }
+
+    
+    EXPECT_FLOAT_EQ(p_vec[0].vel, );
+    EXPECT_FLOAT_EQ(p_vec[1].vel, );
+    EXPECT_FLOAT_EQ(p_vec[2].vel, );
+    
+}
+
+This was starting to be a gigantic pain so I decided to just do the density one and leave the rest
+of the code to be tested by reproducing the analytical solution
+
+*/

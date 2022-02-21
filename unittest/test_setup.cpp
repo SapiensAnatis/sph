@@ -34,7 +34,8 @@ TEST(ConfigClassTest, ReadConfigStream) {
         "mass 10",
         "limit 1",
         "v_0 8",
-        "smoothing_length 1"
+        "smoothing_length 1",
+        "pressure_calc 0"
     });
 
     auto config = Config(stream);
@@ -46,6 +47,7 @@ TEST(ConfigClassTest, ReadConfigStream) {
     EXPECT_EQ(config.limit, 1);
     EXPECT_EQ(config.v_0, 8);
     EXPECT_EQ(config.smoothing_length, 1);
+    EXPECT_EQ(config.pressure_calc, Isothermal);
 }
 
 TEST(ConfigClassTest, ReadBadConfig) {
@@ -58,7 +60,8 @@ TEST(ConfigClassTest, ReadBadConfig) {
         "t_unit 2",
         "limit 1",
         "v_0 10",
-        "smoothing_length 1"
+        "smoothing_length 1",
+        "pressure_calc 0"
     });
 
     EXPECT_EXIT(
@@ -78,7 +81,8 @@ TEST(ConfigClassTest, ReadDupedConfig) {
         "d_unit 300000",
         "v_0 12",
         "v_0 19",
-        "smoothing_length 1"
+        "smoothing_length 1",
+        "pressure_calc 0"
     });
     
     auto config = Config(stream);
@@ -107,7 +111,8 @@ TEST(ParticleSetup, CorrectNParticles) {
         "mass 10",
         "limit 1",
         "v_0 10",
-        "smoothing_length 1"
+        "smoothing_length 1",
+        "pressure_calc 0"
     });
 
     auto config = Config(stream);
@@ -126,7 +131,8 @@ TEST(ParticleSetup, CorrectVZero) {
         "mass 10",
         "limit 1",
         "v_0 12",
-        "smoothing_length 1"
+        "smoothing_length 1",
+        "pressure_calc 0"
     });
 
     auto config = Config(stream);

@@ -57,14 +57,13 @@ int main(int argc, char* argv[]) {
     outstream << "# Column defs: position (x), density" << std::endl;
 
     auto start = std::chrono::high_resolution_clock::now();
-    for (Particle p : pv) {
+    for (Particle &p : pv) {
         // Calculate density at each particle
         d_calc(p, pv);
 
         outstream << p.pos << "\t" << p.density << std::endl;
     }
 
-    // I'm usually against `using namespace`s but these type names are making me reconsider...
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
 

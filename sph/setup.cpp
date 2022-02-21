@@ -22,6 +22,11 @@ Config::Config(std::istream &config_stream) {
     set_property(this->limit, config_map, "limit");
     set_property(this->v_0, config_map, "v_0");
     set_property(this->smoothing_length, config_map, "smoothing_length");
+
+    // Cast to enum
+    int pressure_calc_tmp;
+    set_property(pressure_calc_tmp, config_map, "pressure_calc");
+    this->pressure_calc = PressureCalc(pressure_calc_tmp);
 }
 
 ConfigMap Config::parse_config(std::istream &cfg_stream) {

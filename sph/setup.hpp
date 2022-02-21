@@ -25,6 +25,11 @@ const double v_0 = 10;
 
 typedef std::map<std::string, std::string> ConfigMap;
 
+enum PressureCalc {
+    Isothermal,
+    Adiabatic
+};
+
 // Config class, used to store configuration properties. Has a constructor that takes in the
 // ConfigMap and performs datatype conversipn.
 class Config {
@@ -37,6 +42,7 @@ class Config {
         double limit;
         double v_0;
         double smoothing_length;
+        PressureCalc pressure_calc;
 
         Config(std::istream &config_stream);
         // Default constructor for unit tests

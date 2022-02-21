@@ -49,7 +49,12 @@ void AccelerationCalculator::operator()(Particle &p_i, const ParticleVector &p_v
             double q = r_ij / h;
             double grad_W = Kernel::d_kernel(q);
 
-            double Pr_j = this->pressure_isothermal(p_j, c_s);
+            double Pr_j;
+            if (this->config.pressure_calc == Isothermal)
+                Pr_j = this->pressure_isothermal(p_j, c_s);
+            else
+                throw std::invalid_argument("Adiabatic EoS not yet implemented!");
+
             double Pr_rho_j = Pr_j / std::pow(p_j.density, 2);
 
             double visc_ij = artificial_viscosity(p_i, p_j, r_ij, h, c_s);
@@ -66,7 +71,8 @@ double AccelerationCalculator::pressure_isothermal(const Particle &p, double c_s
 }
 
 double AccelerationCalculator::sound_speed() {
-    // 10 m.s.^-1 in code units
+    // 10 m.s^-1 in code units. Normally we multiply by the unit to use code units,
+    // but this was originally given in m.s^-1 so the process is reversed
     return 10 / (this->config.d_unit / this->config.t_unit);
 }
 

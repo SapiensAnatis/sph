@@ -25,6 +25,9 @@ v_0 12
 # The smoothing length
 smoothing_length 1
 
+# Pressure calculation mode. 0: Isothermal, 1: Adiabatic
+pressure_calc 0
+
 # The initial timestep to use for the simulation
 # To be integrated later
 # t_i = 0.1

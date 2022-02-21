@@ -20,6 +20,7 @@ class DensityCalculator {
     public:
         const Config &config;
 
+        // Equation 2.21 of Bate thesis
         void operator()(Particle &p, const ParticleVector &p_vec);
         DensityCalculator(const Config &c) : config(c) {};
 };
@@ -55,7 +56,7 @@ class AccelerationCalculator {
          */
         double pressure_isothermal(const Particle &p, double c_s);
         
-        // Get sound speed -- just constant value, but disentangled from method to be easily changed
+        // Get sound speed -- just constant value, but disentangled from method to be modifiable
         double sound_speed();
         
         // 
