@@ -12,26 +12,27 @@
 
 #pragma region DensityCalculator
 
-void DensityCalculator::operator()(Particle &p, const ParticleVector &p_vec) {
+void DensityCalculator::operator()(Particle &p_i, const ParticleArrayPtr &p_all) {
     double h = Kernel::smoothing_length(this->config);
     double density = 0;
 
-    for (Particle p_i : p_vec) {
-        if (p_i != p) { // i != j
-            double q = std::abs(p_i.pos - p.pos) / h;
+    for (int i = 0; i < this->config.n_part; i++) {
+        Particle &p_j = p_all[i];
+        if (p_i != p_j) { // i != j
+            double q = std::abs(p_i.pos - p_j.pos) / h;
             double w = Kernel::kernel(q);
             
             density += p_i.mass * (w / h);
         }
     }
 
-    p.density = density;
+    p_i.density = density;
 }
 
 #pragma endregion
 #pragma region MomentumCalculator
 
-void AccelerationCalculator::operator()(Particle &p_i, const ParticleVector &p_vec) {
+void AccelerationCalculator::operator()(Particle &p_i, const ParticleArrayPtr &p_all) {
     // I have tried to use variable names that correspond to how this equation is typeset in the
     // Bate thesis. Pr = pressure, p = particle, rho = density, W = weighting
     double c_s = this->sound_speed();
@@ -41,7 +42,9 @@ void AccelerationCalculator::operator()(Particle &p_i, const ParticleVector &p_v
 
     double acc = 0;
 
-    for (Particle p_j : p_vec) {
+    for (int i = 0; i < this->config.n_part; i++) {
+        Particle &p_j = p_all[i];
+
         if (p_j != p_i) {
             // It probably isn't efficient to declare so many variables, but it makes the code more
             // readable, and they probably get optimized out by the compiler anyway(?)

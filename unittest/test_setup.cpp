@@ -102,6 +102,10 @@ TEST(ConfigClassTest, ReadMissingConfig) {
     );
 }
 
+/*
+Since switching to array pointers, sizeof(p_arr) is always 8 -- I think it decays to a regular
+pointer and renders size info inaccessible.
+
 TEST(ParticleSetup, CorrectNParticles) {
     // Check the right number of particles are made
     std::istringstream stream = build_config_stream({
@@ -116,10 +120,33 @@ TEST(ParticleSetup, CorrectNParticles) {
     });
 
     auto config = Config(stream);
-    ParticleVector pv = init_particles(config);
+    ParticleArrayPtr p_arr(new Particle[config.n_part]);
 
-    EXPECT_EQ(pv.size(), 20);
+    EXPECT_EQ(sizeof(p_arr), 20 * sizeof(Particle));
+} 
+*/
+
+TEST(ParticleSetup, CorrectMass) {
+    std::istringstream stream = build_config_stream({
+        "n_part 25",
+        "d_unit 1",
+        "t_unit 1",
+        "mass 15",
+        "limit 1",
+        "v_0 12",
+        "smoothing_length 1",
+        "pressure_calc 0"
+    });
+
+    auto config = Config(stream);
+    ParticleArrayPtr p_arr(new Particle[config.n_part]);
+    init_particles(config, p_arr);
+
+    for (int i = 0; i < config.n_part; i++) {
+        EXPECT_EQ(p_arr[i].mass, 15);
+    }
 }
+
 
 TEST(ParticleSetup, CorrectVZero) {
     // Check that all particles are given either plus or minus v_0. Velocity should be positive if
@@ -136,22 +163,23 @@ TEST(ParticleSetup, CorrectVZero) {
     });
 
     auto config = Config(stream);
-    ParticleVector pv = init_particles(config);
+    ParticleArrayPtr p_arr(new Particle[config.n_part]);
+    init_particles(config, p_arr);
 
-    for (Particle p : pv) {
+    for (int i = 0; i < config.n_part; i++) {
         // For the edge case p.pos == 0 (exceedingly unlikely because RNG), see line 122-ish of
         // setup.cpp init_particles(); v will be negative
-        if (p.pos < 0) {
-            EXPECT_EQ(p.vel, 12);
+        if (p_arr[i].pos < 0) {
+            EXPECT_EQ(p_arr[i].vel, 12);
         } else {
-            EXPECT_EQ(p.vel, -12);
+            EXPECT_EQ(p_arr[i].vel, -12);
         }
     }
 }
 
 /*
 // The random nature of the particle distribution means that if this test *does* fail, it will
-probably be sporadically // and very rarely. So it's pretty badly designed.
+probably be sporadically and very rarely. So it's pretty badly designed.
 // Removed for this reason
 TEST(ParticleSetup, WithinBounds) {
     // Check that all particles are within the specified boundary

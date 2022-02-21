@@ -16,7 +16,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
-#include <chrono>
+#include <memory>
 
 #include "setup.hpp"
 #include "calculators.hpp"
@@ -48,26 +48,13 @@ int main(int argc, char* argv[]) {
 
     auto config = Config(config_stream);
 
-    ParticleVector pv = init_particles(config);
+    // Allocate memory for particles. Using a vector probably would've been a whole lot easier,
+    // but there's no need for all the features that vectors provide such as swapping and resizing;
+    // given what the code's actually doing, a static array is fine and is probably more efficient?
+    std::unique_ptr<Particle[]> p_arr_ptr(new Particle[config.n_part]);
 
-    auto d_calc = DensityCalculator(config);
-    auto outstream = std::ofstream("/home/jay/Dropbox/University/Y4/PHYM004/sph/densities.txt");
-    outstream << "# Code units are " << config.d_unit << " for distance and " << config.t_unit << " for time." << std::endl;
-    outstream << "# Each line is one particle." << std::endl;
-    outstream << "# Column defs: position (x), density" << std::endl;
-
-    auto start = std::chrono::high_resolution_clock::now();
-    for (Particle &p : pv) {
-        // Calculate density at each particle
-        d_calc(p, pv);
-
-        outstream << p.pos << "\t" << p.density << std::endl;
-    }
-
-    auto stop = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-
-    std::cout << duration.count() << std::endl;
+    // Initialize position, velocity, and mass values
+    init_particles(config, p_arr_ptr);
 
     return 0;
 }

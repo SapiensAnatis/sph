@@ -16,7 +16,7 @@
 #include <string>
 #include <fstream>
 #include <map>
-#include <vector>
+#include <memory>
 
 #include "particle.hpp"
 
@@ -52,18 +52,20 @@ class Config {
         // <propertyname, propertyvalue> to be converted later in the Config constructor. 
         static ConfigMap parse_config(std::istream &cfg_stream);
 
-        // Method to access ConfigMap and return an error if key not found. Helps to reduce code reuse in
-        // set_property overloads.
+        // Method to access ConfigMap and return an error if key not found. Helps to reduce code
+        // reuse in set_property overloads.
         static std::string read_config_map(ConfigMap &config_map, const std::string &prop_name);
 
-        // Overloads of set_property. These take in a particular type of Config member by reference as well
-        // as a string property value, and each overload has a different way of converting the property
-        // value based on the type of the Config member.
+        // Overloads of set_property. These take in a particular type of Config member by reference
+        // as well as a string property value, and each overload has a different way of converting
+        // the property value based on the type of the Config member.
         static void set_property(int &prop, ConfigMap &config_map, const std::string &prop_name);
         static void set_property(double &prop, ConfigMap &config_map, const std::string &prop_name);
 };
 
-// Method to set up initial particle array
-ParticleVector init_particles(Config c);
+// Take in a pointer to a particle array, and loop through it to properly initialize the particles.
+void init_particles(const Config &c, std::unique_ptr<Particle[]> &p_arr_ptr);
+
+typedef std::unique_ptr<Particle[]> ParticleArrayPtr;
 
 #endif

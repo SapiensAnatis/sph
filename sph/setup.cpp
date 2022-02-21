@@ -9,6 +9,7 @@
 #include <iostream>
 #include <random>
 #include <ctime>
+#include <memory>
 
 #include "setup.hpp"
 
@@ -112,11 +113,8 @@ void Config::set_property(double &prop, ConfigMap &config_map, const std::string
     }
 }
 
-ParticleVector init_particles(Config c)
+void init_particles(const Config &c, std::unique_ptr<Particle[]> &p_arr_ptr)
 {
-    ParticleVector result;
-    result.reserve(c.n_part);
-
     double max_x = c.limit * c.d_unit;
     double min_x = -max_x;
 
@@ -128,13 +126,12 @@ ParticleVector init_particles(Config c)
         double pos = rand(eng);
         // +v_0 if pos negative, -v_0 otherwise
         double vel = (pos < 0) ? c.v_0 : -c.v_0;
-
-        result.push_back(Particle(pos, vel, c.mass));
-
+        
+        p_arr_ptr[i].pos = pos;
+        p_arr_ptr[i].vel = vel;
+        p_arr_ptr[i].mass = c.mass;
         // std::cout << result[i].pos << " | " << result[i].vel << std::endl;
     }
 
     // TODO: Initialize ghost particles near boundaries
-
-    return result;
 }

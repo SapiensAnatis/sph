@@ -7,7 +7,6 @@
 #ifndef particle_hpp // Include guard
 #define particle_hpp
 
-#include <vector>
 
 enum ParticleType {
     Alive,
@@ -20,7 +19,7 @@ static int _particle_counter = 0;
 
 struct Particle {
     const int id; // Unique numerical identifier
-    const double mass;
+    double mass; // Should be const, but can't be if not given in constructor :(
 
     double pos;
     double vel;
@@ -31,8 +30,15 @@ struct Particle {
 
     ParticleType type;
 
+    // Full initializer for unit tests
     Particle(double pos, double vel, double mass)
         : id(_particle_counter), mass(mass), pos(pos), vel(vel), acc(0), u(0), density(0)
+    {
+        _particle_counter++;
+    }
+
+    // Default initializer for creating arrays
+    Particle() : id(_particle_counter)
     {
         _particle_counter++;
     }
@@ -43,7 +49,5 @@ struct Particle {
         return (this->id != p.id);
     }
 };
-
-typedef std::vector<Particle> ParticleVector;
 
 #endif

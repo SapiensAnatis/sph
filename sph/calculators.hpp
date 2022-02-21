@@ -21,7 +21,7 @@ class DensityCalculator {
         const Config &config;
 
         // Equation 2.21 of Bate thesis
-        void operator()(Particle &p, const ParticleVector &p_vec);
+        void operator()(Particle &p, const ParticleArrayPtr &p_all);
         DensityCalculator(const Config &c) : config(c) {};
 };
 
@@ -35,7 +35,7 @@ class AccelerationCalculator {
         const double eta_coeff = 0.01; // multiplied by h^2 in viscosity
 
         // Equation 2.27 of Bate thesis
-        void operator()(Particle &p_i, const ParticleVector &p_vec);
+        void operator()(Particle &p_i, const ParticleArrayPtr &p_all);
         AccelerationCalculator(const Config &c) : config(c) {};
 
     private:
