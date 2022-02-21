@@ -9,6 +9,8 @@
 
 #include "calculators.hpp"
 
+#pragma region Kernel
+
 double Kernel::kernel(double q) {
     double w;
     double sigma = 2.0/3.0;
@@ -48,6 +50,7 @@ double Kernel::smoothing_length(const Config &c) {
     return c.smoothing_length * c.d_unit;
 }
 
+#pragma endregion
 #pragma region DensityCalculator
 
 void DensityCalculator::operator()(Particle &p_i, const ParticleArrayPtr &p_all) {
@@ -68,7 +71,7 @@ void DensityCalculator::operator()(Particle &p_i, const ParticleArrayPtr &p_all)
 }
 
 #pragma endregion
-#pragma region MomentumCalculator
+#pragma region AccelerationCalculator
 
 void AccelerationCalculator::operator()(Particle &p_i, const ParticleArrayPtr &p_all) {
     // I have tried to use variable names that correspond to how this equation is typeset in the

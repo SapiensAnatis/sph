@@ -1,7 +1,7 @@
 /* 
  * PHYM004 Project 2 / Jay Malhotra
  *
- * setup.hpp defines functions implemented in read_config.cpp. As you may have guessed, these relate
+ * ConfigReader.hpp defines functions implemented in read_config.cpp. As you may have guessed, these relate
  * to reading the configuration file and setting up the program. It also defines a Config struct
  * with shared static properties.
  *
@@ -10,8 +10,8 @@
  * do it this way rather than adding an external dependency.
  */
 
-#ifndef setup_hpp // Include guard
-#define setup_hpp
+#ifndef ConfigReader_hpp // Include guard
+#define ConfigReader_hpp
 
 #include <string>
 #include <fstream>
@@ -20,9 +20,7 @@
 
 #include "particle.hpp"
 
-// Configuration properties that are compiled into the code
-const double v_0 = 10;
-
+// propertyname, value map read in from file
 typedef std::map<std::string, std::string> ConfigMap;
 
 enum PressureCalc {
@@ -30,23 +28,30 @@ enum PressureCalc {
     Adiabatic
 };
 
+// Actual configuration values. When reading the config, the program initializes a ConfigReader,
+// which is composed of a Config that it initializes the values of. The program can then grab the
+// Config from its ConfigReader, and avoid passing around the complete ConfigReader class.
+struct Config {
+    int n_part;
+    double d_unit;
+    double t_unit;
+    double mass;
+    double limit;
+    double v_0;
+    double smoothing_length;
+    PressureCalc pressure_calc;
+};
+
 // Config class, used to store configuration properties. Has a constructor that takes in the
 // ConfigMap and performs datatype conversion.
-class Config {
+class ConfigReader {
     public:
-        // Variable names correspond to parameter names in config file
-        int n_part;
-        double d_unit;
-        double t_unit;
-        double mass;
-        double limit;
-        double v_0;
-        double smoothing_length;
-        PressureCalc pressure_calc;
+        // Data
+        Config config;
 
-        Config(std::istream &config_stream);
+        ConfigReader(std::istream &config_stream);
         // Default constructor for unit tests
-        Config() {}
+        ConfigReader() {}
     private:
         // parse_config: takes in a stream of the config file, and creates a <string, string> map of
         // <propertyname, propertyvalue> to be converted later in the Config constructor. 

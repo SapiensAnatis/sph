@@ -38,7 +38,8 @@ TEST(ConfigClassTest, ReadConfigStream) {
         "pressure_calc 0"
     });
 
-    auto config = Config(stream);
+    auto config_reader = ConfigReader(stream);
+    Config config = config_reader.config;
 
     EXPECT_EQ(config.n_part, 4);
     EXPECT_EQ(config.d_unit, 3);
@@ -65,7 +66,7 @@ TEST(ConfigClassTest, ReadBadConfig) {
     });
 
     EXPECT_EXIT(
-        Config config(stream), testing::ExitedWithCode(1),
+        ConfigReader config_reader(stream), testing::ExitedWithCode(1),
         "Parsing error on line 1 of config file."
     );
 }
@@ -85,7 +86,8 @@ TEST(ConfigClassTest, ReadDupedConfig) {
         "pressure_calc 0"
     });
     
-    auto config = Config(stream);
+    auto config_reader = ConfigReader(stream);
+    Config config = config_reader.config;
 
     EXPECT_EQ(config.n_part, 4);
     EXPECT_EQ(config.d_unit, 3);
@@ -97,7 +99,7 @@ TEST(ConfigClassTest, ReadMissingConfig) {
     std::istringstream stream("d_unit 2");
     
     EXPECT_EXIT(
-        Config config(stream), testing::ExitedWithCode(1),
+        ConfigReader config_reader(stream), testing::ExitedWithCode(1),
         "Failed to find a definition for property 'n_part'"
     );
 }
@@ -138,7 +140,9 @@ TEST(ParticleSetup, CorrectMass) {
         "pressure_calc 0"
     });
 
-    auto config = Config(stream);
+    auto config_reader = ConfigReader(stream);
+    Config config = config_reader.config;
+
     ParticleArrayPtr p_arr(new Particle[config.n_part]);
     init_particles(config, p_arr);
 
@@ -162,7 +166,9 @@ TEST(ParticleSetup, CorrectVZero) {
         "pressure_calc 0"
     });
 
-    auto config = Config(stream);
+    auto config_reader = ConfigReader(stream);
+    Config config = config_reader.config;
+    
     ParticleArrayPtr p_arr(new Particle[config.n_part]);
     init_particles(config, p_arr);
 
