@@ -1,9 +1,8 @@
 /* 
  * PHYM004 Project 2 / Jay Malhotra
  *
- * calculators.hpp defines a few classes which set properties on Particles. For the moment, these
- * are DensityCalculator and AccelerationCalculator. These are visitor-like classes which operate
- * on a particle and return void, instead setting a property on the object.
+ * calculators.hpp defines the functions which calculate specific quantities such as the weighting
+ * function, the density evaluation function, and the acceleration evaluation function.
  */
 
 
@@ -12,6 +11,17 @@
 
 #include "calculators.hpp"
 #include "setup.hpp"
+
+class Kernel {
+    public:
+        // W
+        static double kernel(double q);
+        // grad(W)
+        static double d_kernel(double q);
+        // h. Not much point in this until I get around to doing dynamic smoothing lengths
+        static double smoothing_length(const Config &c);
+};
+
 
 // Visitor-like design pattern: DensityCalculator operates on a Particle and sets the `density`
 // property by using the smoothing kernel and iterating over neighbours.
