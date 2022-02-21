@@ -19,7 +19,7 @@
 #include <memory>
 
 #include "setup.hpp"
-#include "calculators.hpp"
+#include "sph.hpp"
 
 int main(int argc, char* argv[]) {
     std::string filename;
@@ -38,8 +38,6 @@ int main(int argc, char* argv[]) {
     config_stream.open(filename);
 
     if (!config_stream) {
-        // The logging system is not very advanced, but hopefully using these simple tags should
-        // enable users to perform ad-hoc filtering using grep or similar
         std::cerr << "[ERROR] Could not open config file " << filename << " for reading. Perhaps"
         " the file could not be found, or you do not have permission to read it." << std::endl;
         
@@ -49,12 +47,17 @@ int main(int argc, char* argv[]) {
     auto config = Config(config_stream);
 
     // Allocate memory for particles. Using a vector probably would've been a whole lot easier,
-    // but there's no need for all the features that vectors provide such as swapping and resizing;
-    // given what the code's actually doing, a static array is fine and is probably more efficient?
-    std::unique_ptr<Particle[]> p_arr_ptr(new Particle[config.n_part]);
+    // but there's no need for all the features that vectors provide such as swapping and resizing.
+    // Given what the code's actually doing, a static array is fine and is probably more efficient.
+    // Erm, I think so anyway
+    ParticleArrayPtr p_arr(new Particle[config.n_part]);
 
     // Initialize position, velocity, and mass values
-    init_particles(config, p_arr_ptr);
+    init_particles(config, p_arr);
+
+    // Create simulation object
+    auto sim = SPHSimulation(config, p_arr);
+    sim.start(10);
 
     return 0;
 }

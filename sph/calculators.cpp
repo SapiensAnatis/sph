@@ -34,7 +34,7 @@ void DensityCalculator::operator()(Particle &p_i, const ParticleArrayPtr &p_all)
 
 void AccelerationCalculator::operator()(Particle &p_i, const ParticleArrayPtr &p_all) {
     // I have tried to use variable names that correspond to how this equation is typeset in the
-    // Bate thesis. Pr = pressure, p = particle, rho = density, W = weighting
+    // Bate thesis. Pr = pressure, p = particle, rho = density, W = weight function
     double c_s = this->sound_speed();
     double Pr_i = this->pressure_isothermal(p_i, c_s);
     double Pr_rho_i = Pr_i / std::pow(p_i.density, 2);

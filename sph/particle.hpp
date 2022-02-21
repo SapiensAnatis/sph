@@ -32,13 +32,13 @@ struct Particle {
 
     // Full initializer for unit tests
     Particle(double pos, double vel, double mass)
-        : id(_particle_counter), mass(mass), pos(pos), vel(vel), acc(0), u(0), density(0)
+        : id(_particle_counter), mass(mass), pos(pos), vel(vel), acc(0), u(0), density(0), type(Alive)
     {
         _particle_counter++;
     }
 
     // Default initializer for creating arrays
-    Particle() : id(_particle_counter)
+    Particle() : id(_particle_counter), type(Alive)
     {
         _particle_counter++;
     }

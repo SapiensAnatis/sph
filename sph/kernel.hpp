@@ -17,7 +17,7 @@ class Kernel {
         static double kernel(double q);
         // grad(W)
         static double d_kernel(double q);
-        // h
+        // h. Not much point in this until I get around to doing dynamic smoothing lengths
         static double smoothing_length(const Config &c);
 };
 

@@ -31,7 +31,7 @@ enum PressureCalc {
 };
 
 // Config class, used to store configuration properties. Has a constructor that takes in the
-// ConfigMap and performs datatype conversipn.
+// ConfigMap and performs datatype conversion.
 class Config {
     public:
         // Variable names correspond to parameter names in config file
