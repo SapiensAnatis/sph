@@ -12,6 +12,10 @@ void SPHSimulation::start(double end_time) {
     // First calculate density and acceleration for all particles at t = 0
     // Consecutive for loops: acceleration calculation requires that density is define for every
     // other particle (otherwise div by zero!)
+
+    // These print statements help to identify where the program has had an error, if one occurs.
+    std::cout << "[INFO] Simulation time: " << current_time << " / " << end_time << std::endl;
+    
     for (int i = 0; i < config.n_part; i++) {
         dc(p_arr[i]);
     }
@@ -24,6 +28,8 @@ void SPHSimulation::start(double end_time) {
 
     // And so it begins
     while (current_time < end_time) {
+        current_time += timestep;
+        std::cout << "[INFO] Simulation time: " << current_time << " / " << end_time << std::endl;
         step_forward();
     }
 }
@@ -31,7 +37,6 @@ void SPHSimulation::start(double end_time) {
 void SPHSimulation::step_forward() {
     // Call into the integrator. For now it's a simple velocity verlet one because I remember
     // how to write that from the nbody assignment, and the GSL documentation scares me
-    current_time += timestep;
     
     for (int i = 0; i < config.n_part; i++) {
         Particle& p = p_arr[i];
@@ -60,7 +65,7 @@ void SPHSimulation::file_write() {
 
     for (int i = 0; i < config.n_part; i++) {
         Particle& p = p_arr[i];
-        outstream << p.id << "\t" << p.density << "\t" << p.acc << "\t" << p.vel << "\t" << p.pos << std::endl;
+        outstream << p.id << "    " << p.density << "    " << p.acc << "    " << p.vel << "    " << p.pos << std::endl;
     }
 
     outstream.close();

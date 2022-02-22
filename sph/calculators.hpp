@@ -12,6 +12,9 @@
 #include "calculators.hpp"
 #include "setup.hpp"
 
+// Epsilon value -- when checking if a floating point is 0, check if it's less than this instead
+const double CALC_EPSILON = 1e-8;
+
 class Kernel {
     public:
         // W
@@ -27,16 +30,17 @@ class Kernel {
 // certain information that would otherwise be needed for every function call e.g. particle array
 // pointer, Config data, etc. 
 
-// Base type of calculator
+// Base type of calculator. Defines constructor (storing config and particle array) and an
+// override-able operator method
 class Calculator {
     public:
+        // ctor
+        Calculator(const Config &c, ParticleArrayPtr p_arr_ptr) 
+            : config(c), p_all(p_arr_ptr) {}
         // Calculation function
         virtual void operator()(Particle &p) {
             throw new std::logic_error("Attempt to call un-implemented operator() function!");
         }
-
-        Calculator(const Config &c, ParticleArrayPtr p_arr_ptr) 
-            : config(c), p_all(p_arr_ptr) {}
     protected:
         const Config config;
         const ParticleArrayPtr p_all;
@@ -110,6 +114,9 @@ class AccelerationCalculator : public Calculator {
             double h,
             double c_s
         );
+
+        // Check that p's density is not less than epsilon, and throw an error if it is.
+        void ensure_nonzero_density(const Particle &p);
 };
 
 #endif

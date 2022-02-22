@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
     auto config_reader = ConfigReader(config_stream);
     Config config = config_reader.GetConfig();
 
-    // Allocate memory for particles. Using a vector probably would've been a whole lot easier,
+    // Allocate memory for particle array. Using a vector probably would've been a whole lot easier,
     // but there's no need for all the features that vectors provide such as swapping and resizing.
     // Given what the code's actually doing, a static array is fine and is probably more efficient.
 

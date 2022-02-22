@@ -6,6 +6,7 @@
 
 #include <cmath>
 #include <exception>
+#include <iostream>
 
 #include "calculators.hpp"
 
@@ -83,8 +84,12 @@ void AccelerationCalculator::operator()(Particle &p_i) {
 
     double acc = 0;
 
+    // Density = 0 will cause div by zero and screw everything up. Should never really happen
+    ensure_nonzero_density(p_i);
+
     for (int i = 0; i < config.n_part; i++) {
         Particle &p_j = p_all[i];
+        ensure_nonzero_density(p_j);
 
         if (p_j != p_i) {
             // It probably isn't efficient to declare so many variables, but it makes the code more
@@ -143,6 +148,16 @@ double AccelerationCalculator::artificial_viscosity(
     result /= rho_ij;
 
     return result;
+}
+
+void AccelerationCalculator::ensure_nonzero_density(const Particle &p) {
+    if (p.density < CALC_EPSILON) {
+        std::cerr << "[ERROR] Particle had density less than epsilon " << CALC_EPSILON << std::endl;
+        std::cerr << "[ERROR] Particle id: " << p.id << " has density: " << p.density << std::endl;
+        // std::cerr << "[ERROR] Current time " << No way of accessing that, oops!
+
+        throw new std::logic_error("Particle had density less than epsilon!");
+    }
 }
 
 #pragma endregion
