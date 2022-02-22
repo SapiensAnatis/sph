@@ -19,7 +19,9 @@
 #include <memory>
 
 #include "setup.hpp"
+#include "particle.hpp"
 #include "sph.hpp"
+
 
 int main(int argc, char* argv[]) {
     std::string filename;
@@ -51,8 +53,15 @@ int main(int argc, char* argv[]) {
     // Allocate memory for particles. Using a vector probably would've been a whole lot easier,
     // but there's no need for all the features that vectors provide such as swapping and resizing.
     // Given what the code's actually doing, a static array is fine and is probably more efficient.
-    // Erm, I think so anyway
-    ParticleArrayPtr p_arr(new Particle[config.n_part]);
+
+    // I'm also torturing myself by using 'smart pointers' in an effort to learn new things. These
+    // will automatically be freed -- in the case of a shared pointer, once the last reference to it
+    // goes out of scope. I have to use the boost version because while std::shared_ptr supports
+    // array types, std::make_shared doesn't (?!). Apparently that changed in C++20, but I still
+    // got compiler errors when using that standard.
+
+    // Yes, I am now slightly wishing I would've kept everything simple and written it in C
+    ParticleArrayPtr p_arr = boost::make_shared<Particle[]>(config.n_part);
 
     // Initialize position, velocity, and mass values
     init_particles(config, p_arr);

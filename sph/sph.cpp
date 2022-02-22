@@ -13,11 +13,11 @@ void SPHSimulation::start(double end_time) {
     // Consecutive for loops: acceleration calculation requires that density is define for every
     // other particle (otherwise div by zero!)
     for (int i = 0; i < config.n_part; i++) {
-        dc(p_arr[i], p_arr);
+        dc(p_arr[i]);
     }
     
     for (int i = 0; i < config.n_part; i++) {
-        ac(p_arr[i], p_arr);
+        ac(p_arr[i]);
     }
 
     file_write();
@@ -42,8 +42,8 @@ void SPHSimulation::step_forward() {
         p.pos += p.vel * (timestep);
 
         // Recalculate density and acceleration, as position has changed
-        dc(p, p_arr);
-        ac(p, p_arr);
+        dc(p);
+        ac(p);
 
         // Remaining half-step velocity
         p.vel += p.acc * (timestep);

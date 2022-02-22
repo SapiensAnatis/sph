@@ -117,7 +117,7 @@ void ConfigReader::set_property(double &prop, ConfigMap &config_map, const std::
     }
 }
 
-void init_particles(const Config &c, std::unique_ptr<Particle[]> &p_arr_ptr)
+void init_particles(const Config &c, ParticleArrayPtr p_arr_ptr)
 {
     double max_x = c.limit * c.d_unit;
     double min_x = -max_x;

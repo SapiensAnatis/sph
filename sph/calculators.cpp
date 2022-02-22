@@ -53,7 +53,7 @@ double Kernel::smoothing_length(const Config &c) {
 #pragma endregion
 #pragma region DensityCalculator
 
-void DensityCalculator::operator()(Particle &p_i, const ParticleArrayPtr &p_all) {
+void DensityCalculator::operator()(Particle &p_i) {
     double h = Kernel::smoothing_length(config);
     double density = 0;
 
@@ -73,7 +73,7 @@ void DensityCalculator::operator()(Particle &p_i, const ParticleArrayPtr &p_all)
 #pragma endregion
 #pragma region AccelerationCalculator
 
-void AccelerationCalculator::operator()(Particle &p_i, const ParticleArrayPtr &p_all) {
+void AccelerationCalculator::operator()(Particle &p_i) {
     // I have tried to use variable names that correspond to how this equation is typeset in the
     // Bate thesis. Pr = pressure, p = particle, rho = density, W = weight function
     double c_s = sound_speed();

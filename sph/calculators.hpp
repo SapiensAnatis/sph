@@ -23,30 +23,48 @@ class Kernel {
 };
 
 
-// Visitor-like design pattern: DensityCalculator operates on a Particle and sets the `density`
-// property by using the smoothing kernel and iterating over neighbours.
+// Calculators adopt a visitor design pattern. This is so that they can be instantiated and store
+// certain information that would otherwise be needed for every function call e.g. particle array
+// pointer, Config data, etc. 
 
-class DensityCalculator {
+// Base type of calculator
+class Calculator {
     public:
-        const Config &config;
+        // Calculation function
+        virtual void operator()(Particle &p) {
+            throw new std::logic_error("Attempt to call un-implemented operator() function!");
+        }
 
-        // Equation 2.21 of Bate thesis
-        void operator()(Particle &p, const ParticleArrayPtr &p_all);
-        DensityCalculator(const Config &c) : config(c) {};
+        Calculator(const Config &c, ParticleArrayPtr p_arr_ptr) 
+            : config(c), p_all(p_arr_ptr) {}
+    protected:
+        const Config config;
+        const ParticleArrayPtr p_all;
+
 };
 
-class AccelerationCalculator {
-    public:
-        const Config &config;
 
+class DensityCalculator : public Calculator {
+    public:
+        // ctor -- just call base class
+        DensityCalculator(const Config &c, ParticleArrayPtr p_arr_ptr) 
+            : Calculator(c, p_arr_ptr) {};
+        // Equation 2.21 of Bate thesis
+        void operator()(Particle &p) override;
+};
+
+class AccelerationCalculator : public Calculator {
+    public:
+        // ctor
+        AccelerationCalculator(const Config &c, ParticleArrayPtr p_arr_ptr) 
+            : Calculator(c, p_arr_ptr) {};
         // Artificial viscosity params
         const double alpha = 1;
         const double beta = 2;
         const double eta_coeff = 0.01; // multiplied by h^2 in viscosity
 
         // Equation 2.27 of Bate thesis
-        void operator()(Particle &p_i, const ParticleArrayPtr &p_all);
-        AccelerationCalculator(const Config &c) : config(c) {};
+        void operator()(Particle &p_i) override;
 
     private:
         /*

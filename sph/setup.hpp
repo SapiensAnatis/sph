@@ -17,11 +17,14 @@
 #include <fstream>
 #include <map>
 #include <memory>
+#include <boost/smart_ptr/make_shared.hpp>
 
 #include "particle.hpp"
 
 // propertyname, value map read in from file
 typedef std::map<std::string, std::string> ConfigMap;
+// Particle array
+typedef boost::shared_ptr<Particle []> ParticleArrayPtr;
 
 enum PressureCalc {
     Isothermal,
@@ -71,8 +74,6 @@ class ConfigReader {
 };
 
 // Take in a pointer to a particle array, and loop through it to properly initialize the particles.
-void init_particles(const Config &c, std::unique_ptr<Particle[]> &p_arr_ptr);
-
-typedef std::unique_ptr<Particle[]> ParticleArrayPtr;
+void init_particles(const Config &c, ParticleArrayPtr p_arr_ptr);
 
 #endif

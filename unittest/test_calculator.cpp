@@ -41,10 +41,10 @@ class CalcTestFixture : public ::testing::Test {
 
 TEST_F(CalcTestFixture, DensityCalc) {
     // Compare against hand-calculated values
-    auto dc = DensityCalculator(config);
+    auto dc = DensityCalculator(config, p_arr);
 
     for (int i = 0; i < config.n_part; i++) {
-        dc(p_arr[i], p_arr);
+        dc(p_arr[i]);
     }
 
     EXPECT_FLOAT_EQ(p_arr[0].density, 31.0/48.0);
