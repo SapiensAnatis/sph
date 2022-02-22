@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
 
     // Create simulation object
     auto sim = SPHSimulation(config, p_arr);
-    sim.start(10);
+    sim.start(1);
 
     return 0;
 }

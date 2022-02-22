@@ -46,7 +46,7 @@ struct Particle {
     // Inequality operator
     bool operator !=(Particle p) {
         // Check id
-        return (this->id != p.id);
+        return (id != p.id);
     }
 };
 

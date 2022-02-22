@@ -10,6 +10,8 @@
 #ifndef sph_hpp
 #define sph_hpp
 
+#include <iostream>
+
 #include "setup.hpp"
 #include "calculators.hpp"
 
@@ -17,7 +19,7 @@ class SPHSimulation {
     public:
         // ctor
         SPHSimulation(const Config &c, ParticleArrayPtr &p_arr) 
-            : config(c), dc(c), ac(c), timestep(c.t_unit)
+            : config(c), dc(c), ac(c), timestep(c.t_unit / 10)
         {
             // Transfer ownership of pointer
             this->p_arr = std::move(p_arr);
@@ -36,13 +38,19 @@ class SPHSimulation {
         
         double current_time = 0;
         double timestep;
-        int step_counter = 0;
+
+        int dump_counter = 0;
+        std::ofstream outstream;
 
         // Step the simulation forward
         void step_forward();
 
-        // Dump particle information to a file
-        void dump();
+        // Write particle information to a file: "dumps/{dump_counter}.txt", and then increment
+        // dump_counter
+        void file_write();
+
+        // Dump particle information to stdout (for debugging)
+        void dump_to_stdout();
 
 };
 

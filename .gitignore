@@ -17,3 +17,4 @@ data/*
 plots/*
 *.png
 densities.txt
+dumps/*

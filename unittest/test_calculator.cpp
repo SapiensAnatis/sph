@@ -19,23 +19,23 @@ class CalcTestFixture : public ::testing::Test {
 
         CalcTestFixture() {
             // Particle array with 3 static particles: one at -0.5, one at 0, and one at 0.5
-            this->p_arr = ParticleArrayPtr(new Particle[3] {
+            p_arr = ParticleArrayPtr(new Particle[3] {
                 Particle(-0.5, 0, 1),
                 Particle(0, 0, 1),
                 Particle(0.5, 0, 1)
             });
 
             // Create config
-            this->config = Config(); 
+            config = Config(); 
 
-            this->config.n_part = 3;
-            this->config.d_unit = 1;
-            this->config.t_unit = 1;
-            this->config.mass = 1;
-            this->config.limit = 1;
-            this->config.v_0 = 10;
-            this->config.smoothing_length = 1;
-            this->config.pressure_calc = Isothermal;
+            config.n_part = 3;
+            config.d_unit = 1;
+            config.t_unit = 1;
+            config.mass = 1;
+            config.limit = 1;
+            config.v_0 = 10;
+            config.smoothing_length = 1;
+            config.pressure_calc = Isothermal;
         }
 };
 

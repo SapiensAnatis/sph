@@ -4,44 +4,73 @@
  * sph.cpp implements the functions defined and explained in sph.hpp.
  */
 
-#include "sph.hpp"
 #include <gsl/gsl_odeiv2.h>
+
+#include "sph.hpp"
 
 void SPHSimulation::start(double end_time) {
     // First calculate density and acceleration for all particles at t = 0
-    for (int i = 0; i < this->config.n_part; i++) {
-        Particle& p = this->p_arr[i];
-
-        // These are Calculator objects which operate on a particle and set some specific property.
-        // See calculators.hpp/cpp for more info.
-        this->dc(p, p_arr);
-        this->ac(p, p_arr);
+    // Consecutive for loops: acceleration calculation requires that density is define for every
+    // other particle (otherwise div by zero!)
+    for (int i = 0; i < config.n_part; i++) {
+        dc(p_arr[i], p_arr);
+    }
+    
+    for (int i = 0; i < config.n_part; i++) {
+        ac(p_arr[i], p_arr);
     }
 
-    while (this->current_time < end_time) {
-        this->step_forward();
+    file_write();
+
+    // And so it begins
+    while (current_time < end_time) {
+        step_forward();
     }
 }
 
 void SPHSimulation::step_forward() {
     // Call into the integrator. For now it's a simple velocity verlet one because I remember
     // how to write that from the nbody assignment, and the GSL documentation scares me
-    for (int i = 0; i < this->config.n_part; i++) {
-        Particle& p = this->p_arr[i];
+    current_time += timestep;
+    
+    for (int i = 0; i < config.n_part; i++) {
+        Particle& p = p_arr[i];
 
         // Half-step velocity
-        p.vel += p.acc * (this->timestep / 2);
+        p.vel += p.acc * (timestep / 2);
         // Position
-        p.pos += p.vel * (this->timestep);
+        p.pos += p.vel * (timestep);
 
         // Recalculate density and acceleration, as position has changed
-        this->dc(p, p_arr);
-        this->ac(p, p_arr);
+        dc(p, p_arr);
+        ac(p, p_arr);
 
         // Remaining half-step velocity
-        p.vel += p.acc * (this->timestep);
+        p.vel += p.acc * (timestep);
     }
 
-    this->current_time += timestep;
-    this->step_counter++;
+    file_write();
+}
+
+void SPHSimulation::file_write() {
+    outstream.open("/home/jay/Dropbox/University/Y4/PHYM004/sph/dumps/" + std::to_string(dump_counter) + ".txt");
+    outstream << "# Code units: distance = " << config.d_unit << ", time = " << config.t_unit << std::endl;
+    outstream << "# This file was dumped at t = " << current_time << std::endl;
+    outstream << "# Columns: Particle ID / Density / Particle acceleration / Particle velocity / Particle position" << std::endl;
+
+    for (int i = 0; i < config.n_part; i++) {
+        Particle& p = p_arr[i];
+        outstream << p.id << "\t" << p.density << "\t" << p.acc << "\t" << p.vel << "\t" << p.pos << std::endl;
+    }
+
+    outstream.close();
+
+    dump_counter++;
+}
+
+void SPHSimulation::dump_to_stdout() {
+    for (int i = 0; i < config.n_part; i++) {
+        Particle& p = p_arr[i];
+        std::cout << p.id << "\t" << p.density << "\t" << p.acc << "\t" << p.vel << "\t" << p.pos << std::endl;
+    }
 }

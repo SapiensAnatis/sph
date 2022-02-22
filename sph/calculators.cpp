@@ -54,10 +54,10 @@ double Kernel::smoothing_length(const Config &c) {
 #pragma region DensityCalculator
 
 void DensityCalculator::operator()(Particle &p_i, const ParticleArrayPtr &p_all) {
-    double h = Kernel::smoothing_length(this->config);
+    double h = Kernel::smoothing_length(config);
     double density = 0;
 
-    for (int i = 0; i < this->config.n_part; i++) {
+    for (int i = 0; i < config.n_part; i++) {
         Particle &p_j = p_all[i];
         if (p_i != p_j) { // i != j
             double q = std::abs(p_i.pos - p_j.pos) / h;
@@ -76,14 +76,14 @@ void DensityCalculator::operator()(Particle &p_i, const ParticleArrayPtr &p_all)
 void AccelerationCalculator::operator()(Particle &p_i, const ParticleArrayPtr &p_all) {
     // I have tried to use variable names that correspond to how this equation is typeset in the
     // Bate thesis. Pr = pressure, p = particle, rho = density, W = weight function
-    double c_s = this->sound_speed();
-    double Pr_i = this->pressure_isothermal(p_i, c_s);
+    double c_s = sound_speed();
+    double Pr_i = pressure_isothermal(p_i, c_s);
     double Pr_rho_i = Pr_i / std::pow(p_i.density, 2);
-    double h = Kernel::smoothing_length(this->config);
+    double h = Kernel::smoothing_length(config);
 
     double acc = 0;
 
-    for (int i = 0; i < this->config.n_part; i++) {
+    for (int i = 0; i < config.n_part; i++) {
         Particle &p_j = p_all[i];
 
         if (p_j != p_i) {
@@ -94,8 +94,8 @@ void AccelerationCalculator::operator()(Particle &p_i, const ParticleArrayPtr &p
             double grad_W = Kernel::d_kernel(q);
 
             double Pr_j;
-            if (this->config.pressure_calc == Isothermal)
-                Pr_j = this->pressure_isothermal(p_j, c_s);
+            if (config.pressure_calc == Isothermal)
+                Pr_j = pressure_isothermal(p_j, c_s);
             else
                 throw std::invalid_argument("Adiabatic EoS not yet implemented!");
 
@@ -117,7 +117,7 @@ double AccelerationCalculator::pressure_isothermal(const Particle &p, double c_s
 double AccelerationCalculator::sound_speed() {
     // 10 m.s^-1 in code units. Normally we multiply by the unit to use code units,
     // but this was originally given in m.s^-1 so the process is reversed
-    return 10 / (this->config.d_unit / this->config.t_unit);
+    return 10 / (config.d_unit / config.t_unit);
 }
 
 double AccelerationCalculator::artificial_viscosity(
@@ -133,13 +133,13 @@ double AccelerationCalculator::artificial_viscosity(
     if (dot > 0) 
         return 0;
     
-    double eta_sq = this->eta_coeff * std::pow(h, 2);
+    double eta_sq = eta_coeff * std::pow(h, 2);
     double mu_ij = (h * dot)/(std::pow(r_ij, 2) + eta_sq);
     double rho_ij = (p_i.density + p_j.density) / 2;
 
     double result = 0;
-    result += -this->alpha * c_s * mu_ij;
-    result += this->beta * std::pow(mu_ij, 2);
+    result += -alpha * c_s * mu_ij;
+    result += beta * std::pow(mu_ij, 2);
     result /= rho_ij;
 
     return result;
