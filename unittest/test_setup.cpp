@@ -32,23 +32,23 @@ TEST(ConfigClassTest, ReadConfigStream) {
         "d_unit 3",
         "t_unit 2",
         "mass 10",
+        "pressure_calc 0"
         "limit 1",
         "v_0 8",
         "smoothing_length 1",
-        "pressure_calc 0"
     });
 
     auto config_reader = ConfigReader(stream);
-    Config config = config_reader.config;
+    Config config = config_reader.GetConfig();
 
     EXPECT_EQ(config.n_part, 4);
     EXPECT_EQ(config.d_unit, 3);
     EXPECT_EQ(config.t_unit, 2);
     EXPECT_EQ(config.mass, 10);
+    EXPECT_EQ(config.pressure_calc, Isothermal);
     EXPECT_EQ(config.limit, 1);
     EXPECT_EQ(config.v_0, 8);
     EXPECT_EQ(config.smoothing_length, 1);
-    EXPECT_EQ(config.pressure_calc, Isothermal);
 }
 
 TEST(ConfigClassTest, ReadBadConfig) {
@@ -78,16 +78,16 @@ TEST(ConfigClassTest, ReadDupedConfig) {
         "d_unit 3",
         "t_unit 2",
         "mass 10",
+        "pressure_calc 0"
         "limit 1",
         "d_unit 300000",
         "v_0 12",
         "v_0 19",
         "smoothing_length 1",
-        "pressure_calc 0"
     });
     
     auto config_reader = ConfigReader(stream);
-    Config config = config_reader.config;
+    Config config = config_reader.GetConfig();
 
     EXPECT_EQ(config.n_part, 4);
     EXPECT_EQ(config.d_unit, 3);
@@ -134,14 +134,14 @@ TEST(ParticleSetup, CorrectMass) {
         "d_unit 1",
         "t_unit 1",
         "mass 15",
+        "pressure_calc 0"
         "limit 1",
         "v_0 12",
         "smoothing_length 1",
-        "pressure_calc 0"
     });
 
     auto config_reader = ConfigReader(stream);
-    Config config = config_reader.config;
+    Config config = config_reader.GetConfig();
 
     ParticleArrayPtr p_arr(new Particle[config.n_part]);
     init_particles(config, p_arr);
@@ -160,14 +160,14 @@ TEST(ParticleSetup, CorrectVZero) {
         "d_unit 1",
         "t_unit 1",
         "mass 10",
+        "pressure_calc 0"
         "limit 1",
         "v_0 12",
         "smoothing_length 1",
-        "pressure_calc 0"
     });
 
     auto config_reader = ConfigReader(stream);
-    Config config = config_reader.config;
+    Config config = config_reader.GetConfig();
     
     ParticleArrayPtr p_arr(new Particle[config.n_part]);
     init_particles(config, p_arr);

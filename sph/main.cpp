@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
 
     // Read in config file, and only take actual values
     auto config_reader = ConfigReader(config_stream);
-    auto config = config_reader.config;
+    Config config = config_reader.GetConfig();
 
     // Allocate memory for particles. Using a vector probably would've been a whole lot easier,
     // but there's no need for all the features that vectors provide such as swapping and resizing.

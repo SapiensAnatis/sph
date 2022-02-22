@@ -36,22 +36,21 @@ struct Config {
     double d_unit;
     double t_unit;
     double mass;
+    PressureCalc pressure_calc;
     double limit;
     double v_0;
     double smoothing_length;
-    PressureCalc pressure_calc;
 };
 
 // Config class, used to store configuration properties. Has a constructor that takes in the
 // ConfigMap and performs datatype conversion.
 class ConfigReader {
     public:
-        // Data
-        Config config;
-
+        // Ctor reads stream and initializes Config object
         ConfigReader(std::istream &config_stream);
-        // Default constructor for unit tests
-        ConfigReader() {}
+        
+        // Return determined Config object
+        Config GetConfig();
     private:
         // parse_config: takes in a stream of the config file, and creates a <string, string> map of
         // <propertyname, propertyvalue> to be converted later in the Config constructor. 
@@ -66,6 +65,9 @@ class ConfigReader {
         // the property value based on the type of the Config member.
         static void set_property(int &prop, ConfigMap &config_map, const std::string &prop_name);
         static void set_property(double &prop, ConfigMap &config_map, const std::string &prop_name);
+
+        // Data
+        Config config;
 };
 
 // Take in a pointer to a particle array, and loop through it to properly initialize the particles.

@@ -17,16 +17,21 @@ ConfigReader::ConfigReader(std::istream &config_stream) {
     
     set_property(config.n_part, config_map, "n_part");
     set_property(config.d_unit, config_map, "d_unit");
-    set_property(config.mass, config_map, "mass");
     set_property(config.t_unit, config_map, "t_unit");
+    set_property(config.mass, config_map, "mass");
+  
+    int pressure_calc_tmp;  // Cast to enum
+    set_property(pressure_calc_tmp, config_map, "pressure_calc");
+    config.pressure_calc = PressureCalc(pressure_calc_tmp);
+
     set_property(config.limit, config_map, "limit");
     set_property(config.v_0, config_map, "v_0");
     set_property(config.smoothing_length, config_map, "smoothing_length");
 
-    // Cast to enum
-    int pressure_calc_tmp;
-    set_property(pressure_calc_tmp, config_map, "pressure_calc");
-    config.pressure_calc = PressureCalc(pressure_calc_tmp);
+}
+
+Config ConfigReader::GetConfig() {
+    return config;
 }
 
 ConfigMap ConfigReader::parse_config(std::istream &cfg_stream) {

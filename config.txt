@@ -13,6 +13,9 @@ t_unit 1
 # The mass to use for all of the particles, in kg
 mass 1
 
+# Pressure calculation mode. 0: Isothermal, 1: Adiabatic
+pressure_calc 0
+
 # Properties from beyond here are specified in the above code units!
 
 # Boundary size -- as measured from either side of the origin (so the total width of the space will 
@@ -24,9 +27,6 @@ v_0 12
 
 # The smoothing length
 smoothing_length 1
-
-# Pressure calculation mode. 0: Isothermal, 1: Adiabatic
-pressure_calc 0
 
 # The initial timestep to use for the simulation
 # To be integrated later
