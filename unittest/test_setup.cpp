@@ -32,7 +32,7 @@ TEST(ConfigClassTest, ReadConfigStream) {
         "d_unit 3",
         "t_unit 2",
         "mass 10",
-        "pressure_calc 0"
+        "pressure_calc 0",
         "limit 1",
         "v_0 8",
         "smoothing_length 1",
@@ -57,12 +57,12 @@ TEST(ConfigClassTest, ReadBadConfig) {
         "bad_param",
         "d_unit 3000",
         "n_part 4",
-        "mass 1"
+        "mass 1",
+        "pressure_calc 0",
         "t_unit 2",
         "limit 1",
         "v_0 10",
-        "smoothing_length 1",
-        "pressure_calc 0"
+        "smoothing_length 1"
     });
 
     EXPECT_EXIT(
@@ -78,7 +78,7 @@ TEST(ConfigClassTest, ReadDupedConfig) {
         "d_unit 3",
         "t_unit 2",
         "mass 10",
-        "pressure_calc 0"
+        "pressure_calc 0",
         "limit 1",
         "d_unit 300000",
         "v_0 12",
@@ -134,7 +134,7 @@ TEST(ParticleSetup, CorrectMass) {
         "d_unit 1",
         "t_unit 1",
         "mass 15",
-        "pressure_calc 0"
+        "pressure_calc 0",
         "limit 1",
         "v_0 12",
         "smoothing_length 1",
@@ -160,7 +160,7 @@ TEST(ParticleSetup, CorrectVZero) {
         "d_unit 1",
         "t_unit 1",
         "mass 10",
-        "pressure_calc 0"
+        "pressure_calc 0",
         "limit 1",
         "v_0 12",
         "smoothing_length 1",
