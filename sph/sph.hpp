@@ -18,11 +18,11 @@
 class SPHSimulation {
     public:
         // ctor
-        SPHSimulation(const Config c, ParticleArrayPtr p_arr) 
+        SPHSimulation(const Config &c, ParticleArrayPtr p_arr) 
             : config(c), dc(c, p_arr), ac(c, p_arr), timestep(c.t_unit / 10)
         {
-            // Transfer ownership of pointer
-            this->p_arr = std::move(p_arr);
+            // Copy pointer
+            this->p_arr = ParticleArrayPtr(p_arr);
         }
 
         // Start the simulation (and block the thread until current_time reaches end_time)
