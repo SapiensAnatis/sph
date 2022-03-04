@@ -11,6 +11,7 @@
 #include <iostream>
 #include <random>
 #include <memory>
+#include <algorithm>
 #include <string.h>
 
 #include "setup.hpp"
@@ -236,29 +237,13 @@ void init_ghost_particles(Config &c, ParticleArrayPtr p_arr_ptr) {
     // Add into array. Can't assign so have to copy properties manually, no std::copy
     // LMAO I'm such an idiot for not using vectors
     //memcpy(p_arr_ptr.get() + c.n_part, l_neighbours.data(), l_neighbours.size() * sizeof(Particle));
-    
-    for (int i = 0; i < l_neighbours.size(); i++) {
-        // Left neighbours go right at the end of the array
-        int idx = c.n_part + i;
-        Particle& p = p_arr_ptr[idx];
-        Particle to_copy = l_neighbours[i];
-
-        p = to_copy;
-    }
+    std::copy(l_neighbours.begin(), l_neighbours.end(), p_arr_ptr.get() + c.n_part);
     
     c.n_part += l_neighbours.size();
     c.n_ghost += l_neighbours.size();
 
-    
-    for (int i = 0; i < r_neighbours.size(); i++) {
-        // Right neighbours follow
-        int idx = c.n_part + i;
-        Particle& p = p_arr_ptr[idx];
-        Particle to_copy = r_neighbours[i];
+    std::copy(r_neighbours.begin(), r_neighbours.end(), p_arr_ptr.get() + c.n_part);
 
-        p = to_copy;
-    }
-    
     c.n_part += r_neighbours.size();
     c.n_ghost += r_neighbours.size();
 

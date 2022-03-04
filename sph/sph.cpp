@@ -5,6 +5,7 @@
  */
 
 #include <cstdio>
+#include <iostream>
 
 #include "sph.hpp"
 
@@ -26,8 +27,15 @@ void SPHSimulation::start(double end_time) {
 
     file_write();
 
-    // And so it begins
-    while (current_time < end_time) {
+    // And so it begins. Note that `while(current_time < end_time)` produces
+    
+    // [INFO] Simulation time: 0.9 / 1
+    // [INFO] Simulation time: 1 / 1
+    // [INFO] Simulation time: 1.1 / 1
+    
+    // probably due to rounding error!
+    
+    while (current_time < end_time - CALC_EPSILON) {
         current_time += timestep;
         std::cout << "[INFO] Simulation time: " << current_time << " / " << end_time << std::endl;
         step_forward();
@@ -62,6 +70,7 @@ void SPHSimulation::step_forward() {
 }
 
 void SPHSimulation::file_write() {
+    // TODO: make this less hardcoded later
     outstream.open("/home/jay/Dropbox/University/Y4/PHYM004/sph/dumps/" + std::to_string(dump_counter) + ".txt");
     outstream << "# Code units: distance = " << config.d_unit << ", time = " << config.t_unit << std::endl;
     outstream << "# This file was dumped at t = " << current_time << std::endl;
