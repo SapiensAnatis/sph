@@ -5,7 +5,8 @@
  * constructor.
  */
 
-
+// If this isn't defined, particles will be distributed randomly as per the assignment brief.
+// But Matthew's thesis tells me to distribute them uniformly, which will happen if this is defined.
 #define UNIFORM_DIST
 
 #include <iostream>
@@ -25,11 +26,7 @@ ConfigReader::ConfigReader(std::istream &config_stream) {
     set_property(config.d_unit, config_map, "d_unit");
     set_property(config.t_unit, config_map, "t_unit");
     set_property(config.mass, config_map, "mass");
-  
-    int pressure_calc_tmp;  // Cast to enum
-    set_property(pressure_calc_tmp, config_map, "pressure_calc");
-    config.pressure_calc = PressureCalc(pressure_calc_tmp);
-
+    set_property(config.pressure_calc, config_map, "pressure_calc");
     set_property(config.limit, config_map, "limit");
     set_property(config.v_0, config_map, "v_0");
     set_property(config.smoothing_length, config_map, "smoothing_length");
@@ -124,10 +121,18 @@ void ConfigReader::set_property(double &prop, ConfigMap &config_map, const std::
     }
 }
 
+void ConfigReader::set_property(PressureCalc &prop, ConfigMap &config_map, const std::string &prop_name) {
+    // Just need to get string property as int, then pass to PressureCalc enum constructor. Use
+    // existing int fetch method
+    int tmp_prop;
+    set_property(tmp_prop, config_map, prop_name);
+    prop = PressureCalc(prop);
+}
+
 #pragma endregion
 #pragma region ParticleInitialization
 
-void init_particles(Config &c, ParticleArrayPtr p_arr_ptr)
+void init_particles(Config &c, ParticleArrayPtr &p_arr_ptr)
 {
     double max_x = c.limit * c.d_unit;
     double min_x = -max_x;
@@ -159,10 +164,12 @@ void init_particles(Config &c, ParticleArrayPtr p_arr_ptr)
     }
 
     init_ghost_particles(c, p_arr_ptr);
+
+    std::cout << "[INFO] Initialized " << c.n_ghost << " ghost particles." << std::endl;
     std::cout << "[INFO] Initialized " << c.n_part << " total particles." << std::endl;
 }
 
-void init_ghost_particles(Config &c, ParticleArrayPtr p_arr_ptr) {
+void init_ghost_particles(Config &c, ParticleArrayPtr &p_arr_ptr) {
     // Initialize ghost particles. This is not the 'proper' way of doing it, which is based on
     // neighbour trees etc., but essentially the way it works is: For the leftmost and rightmost
     // particle in the array, collect all the particles within a smoothing length and duplicate
@@ -211,13 +218,17 @@ void init_ghost_particles(Config &c, ParticleArrayPtr p_arr_ptr) {
         double l_dist = std::abs(p.pos - left.pos);
         double r_dist = std::abs(p.pos - right.pos);
 
-        if (l_dist < c.smoothing_length)
+        // Creates copies of p, since the vector is of non-reference Particle. 2*smoothing length
+        // as that is the limit of the kernel, so ensures that edge particles have full neighbours
+        if (l_dist < c.smoothing_length*2)
             l_neighbours.push_back(p);
-        else if (r_dist < c.smoothing_length)
+        else if (r_dist < c.smoothing_length*2)
             r_neighbours.push_back(p);   
     }
 
-    // Mirror neighbours
+
+
+    // Set up neighbours (mirror around edges & set velocity and type)
     for (Particle &p : l_neighbours) {
         // Add twice the vector joining the neighbour and origin particle to the neighbour
         // particle's position
@@ -234,20 +245,40 @@ void init_ghost_particles(Config &c, ParticleArrayPtr p_arr_ptr) {
         p.type = Ghost;
     }
 
-    // Add into array. Can't assign so have to copy properties manually, no std::copy
-    // LMAO I'm such an idiot for not using vectors
-    //memcpy(p_arr_ptr.get() + c.n_part, l_neighbours.data(), l_neighbours.size() * sizeof(Particle));
-    std::copy(l_neighbours.begin(), l_neighbours.end(), p_arr_ptr.get() + c.n_part);
+    // Before adding to array, dynamically reallocate. The array is already full with n_part, but we
+    // can now grow it because we know how many ghost particles are about to be added
+    int n_ghost = l_neighbours.size() + r_neighbours.size();
+
+    Particle* old_ptr = p_arr_ptr.get();
+    Particle* new_ptr = new Particle[c.n_part + n_ghost];
+    // Copy over old data
+    std::copy(old_ptr, old_ptr + c.n_part, new_ptr);
+    // Note: there is an unintended side effect to this approach: particle ids will actually start
+    // at n_part rather than 0, due to all the particles being copied over above... This is because
+    // the assignment constructor does not copy over particle id, and the array members are default
+    // initialized using a global counter, so the initialization of the new array doesn't start at
+    // 0. It shouldn't matter because the id is only used for comparison (p1 == p2 etc.), and there
+    // is no assumption that it starts at 0.
     
+    // A minor cosmetic quirk that is certainly better than speculatively pre-allocating up to 3 *
+    // n_part indexes worth of memory to fit the ghost particles in! (If the smoothing length is
+    // infinite, then the whole array would have to be appened twice over as ghost particles.)
+
+    // Reinitialize shared ptr
+    p_arr_ptr.reset(new_ptr);
+
+    // Add to end of array
+    std::copy(l_neighbours.begin(), l_neighbours.end(), p_arr_ptr.get() + c.n_part);
+
+    // Imperative to update n_part, both for copy below and so that ghost particles are not
+    // ignored in subsequent iteration e.g. calculators.cpp.
     c.n_part += l_neighbours.size();
-    c.n_ghost += l_neighbours.size();
 
     std::copy(r_neighbours.begin(), r_neighbours.end(), p_arr_ptr.get() + c.n_part);
 
     c.n_part += r_neighbours.size();
-    c.n_ghost += r_neighbours.size();
-
-    std::cout << "[INFO] Initialized " << c.n_ghost << " ghost particles." << std::endl;
+    // Ghost counter is diagnostic/curiosity info more than anything else
+    c.n_ghost = n_ghost;
 }
 
 #pragma endregion

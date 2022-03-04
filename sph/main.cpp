@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
         filename = "./config.txt";
     }
     
-    // std::cout << "[INFO] Using config file " << filename << std::endl;
+    std::cout << "[INFO] Using config file " << filename << std::endl;
 
     std::ifstream config_stream;
     config_stream.open(filename);
@@ -50,23 +50,13 @@ int main(int argc, char* argv[]) {
     auto config_reader = ConfigReader(config_stream);
     Config config = config_reader.GetConfig();
 
-    // Allocate memory for particle array. Using a vector probably would've been a whole lot easier,
-    // but there's no need for all the features that vectors provide such as swapping and resizing.
-    // Given what the code's actually doing, a static array is fine and is probably more efficient.
+    // Allocate memory for particle array. Using a vector would've been way easier but I thought an
+    // array would be mOrE eFfIcIeNt and now I can't be bothered to change all the references to
+    // this type
+    ParticleArrayPtr p_arr = boost::make_shared<Particle[]>(config.n_part);
 
-    // I'm also torturing myself by using 'smart pointers' in an effort to learn new things. These
-    // will automatically be freed -- in the case of a shared pointer, once the last reference to it
-    // goes out of scope. I have to use the boost version because while std::shared_ptr supports
-    // array types, std::make_shared doesn't (?!). Apparently that changed in C++20, but I still
-    // got compiler errors when using that standard.
-
-    // Yes, I am now slightly wishing I would've kept everything simple and written it in C
-
-    // Must allocate 3x for ghost particles -- with infinite smoothing length, we would have to copy
-    // the entire array twice (please don't ever do this!)
-    ParticleArrayPtr p_arr = boost::make_shared<Particle[]>(config.n_part * 3);
-
-    // Initialize position, velocity, and mass values
+    // Initialize position, velocity, and mass values. p_arr will be reallocated to fit the ghost
+    // particles in.
     init_particles(config, p_arr);
 
     // Create simulation object

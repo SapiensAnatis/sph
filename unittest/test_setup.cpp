@@ -179,6 +179,9 @@ TEST(ParticleSetup, CorrectVZero) {
     init_particles(config, p_arr);
 
     for (int i = 0; i < config.n_part; i++) {
+        if (p_arr[i].type == Ghost)
+            // These behave a bit differently. Should really write a separate test for them
+            continue;
         // For the edge case p.pos == 0 (exceedingly unlikely because RNG), see line 122-ish of
         // setup.cpp init_particles(); v will be negative
         if (p_arr[i].pos < 0) {

@@ -70,15 +70,16 @@ class ConfigReader {
         // the property value based on the type of the Config member.
         static void set_property(int &prop, ConfigMap &config_map, const std::string &prop_name);
         static void set_property(double &prop, ConfigMap &config_map, const std::string &prop_name);
+        static void set_property(PressureCalc &prop, ConfigMap &config_map, const std::string &prop_name);
 
         // Data
         Config config;
 };
 
 // Take in a pointer to a particle array, and loop through it to properly initialize the particles.
-void init_particles(Config &c, ParticleArrayPtr p_arr_ptr);
+void init_particles(Config &c, ParticleArrayPtr &p_arr_ptr);
 
 // Called into by above -- setup ghost particles around the boundary
-void init_ghost_particles(Config &c, ParticleArrayPtr p_arr_ptr);
+void init_ghost_particles(Config &c, ParticleArrayPtr &p_arr_ptr);
 
 #endif
