@@ -41,6 +41,10 @@ void SPHSimulation::step_forward() {
     for (int i = 0; i < config.n_part; i++) {
         Particle& p = p_arr[i];
 
+        // Don't evolve ghost particles
+        if (p.type == Ghost) 
+            continue;
+
         // Half-step velocity
         p.vel += p.acc * (timestep / 2);
         // Position
@@ -61,7 +65,7 @@ void SPHSimulation::file_write() {
     outstream.open("/home/jay/Dropbox/University/Y4/PHYM004/sph/dumps/" + std::to_string(dump_counter) + ".txt");
     outstream << "# Code units: distance = " << config.d_unit << ", time = " << config.t_unit << std::endl;
     outstream << "# This file was dumped at t = " << current_time << std::endl;
-    outstream << "# Columns: Particle ID / Density / Pressure / Particle acceleration / Particle velocity / Particle position" << std::endl;
+    outstream << "# Columns: Particle ID / Particle type / Density / Pressure / Particle acceleration / Particle velocity / Particle position" << std::endl;
 
     for (int i = 0; i < config.n_part; i++) {
         Particle& p = p_arr[i];
@@ -72,7 +76,7 @@ void SPHSimulation::file_write() {
         // https://github.com/fmtlib/fmt
         
         char buffer[256];
-        sprintf(buffer, "%4d    %+3.3f    %3.3f    %+3.3f    %+3.3f    %+3.3f\n", p.id, p.density, p.pressure, p.acc, p.vel, p.pos);
+        sprintf(buffer, "%4d    %s    %+3.3f    %3.3f    %+3.3f    %+3.3f    %+3.3f\n", p.id, ParticleTypeNames[p.type], p.density, p.pressure, p.acc, p.vel, p.pos);
         outstream << buffer;
     }
 

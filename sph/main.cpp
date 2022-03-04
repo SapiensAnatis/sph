@@ -61,7 +61,10 @@ int main(int argc, char* argv[]) {
     // got compiler errors when using that standard.
 
     // Yes, I am now slightly wishing I would've kept everything simple and written it in C
-    ParticleArrayPtr p_arr = boost::make_shared<Particle[]>(config.n_part);
+
+    // Must allocate 3x for ghost particles -- with infinite smoothing length, we would have to copy
+    // the entire array twice (please don't ever do this!)
+    ParticleArrayPtr p_arr = boost::make_shared<Particle[]>(config.n_part * 3);
 
     // Initialize position, velocity, and mass values
     init_particles(config, p_arr);

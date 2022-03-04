@@ -11,8 +11,11 @@
 #include <iostream>
 #include <random>
 #include <memory>
+#include <string.h>
 
 #include "setup.hpp"
+
+#pragma region ConfigParsing
 
 ConfigReader::ConfigReader(std::istream &config_stream) {
     ConfigMap config_map = parse_config(config_stream);
@@ -120,7 +123,10 @@ void ConfigReader::set_property(double &prop, ConfigMap &config_map, const std::
     }
 }
 
-void init_particles(const Config &c, ParticleArrayPtr p_arr_ptr)
+#pragma endregion
+#pragma region ParticleInitialization
+
+void init_particles(Config &c, ParticleArrayPtr p_arr_ptr)
 {
     double max_x = c.limit * c.d_unit;
     double min_x = -max_x;
@@ -132,6 +138,8 @@ void init_particles(const Config &c, ParticleArrayPtr p_arr_ptr)
     #endif
 
     for (int i = 0; i < c.n_part; i++) {
+        Particle& p  = p_arr_ptr[i];
+
         #ifndef UNIFORM_DIST
             double pos = rand(eng);
         #endif
@@ -143,12 +151,119 @@ void init_particles(const Config &c, ParticleArrayPtr p_arr_ptr)
         // +v_0 if pos negative, -v_0 otherwise
         double vel = (pos < 0) ? c.v_0 : -c.v_0;
         
-        p_arr_ptr[i].pos = pos;
-        p_arr_ptr[i].vel = vel;
-        p_arr_ptr[i].mass = c.mass;
+        p.pos = pos;
+        p.vel = vel;
+        p.mass = c.mass;
         // std::cout << result[i].pos << " | " << result[i].vel << std::endl;
     }
 
-    // TODO: Initialize ghost particles near boundaries
-    
+    init_ghost_particles(c, p_arr_ptr);
 }
+
+void init_ghost_particles(Config &c, ParticleArrayPtr p_arr_ptr) {
+    // Initialize ghost particles. This is not the 'proper' way of doing it, which is based on
+    // neighbour trees etc., but essentially the way it works is: For the leftmost and rightmost
+    // particle in the array, collect all the particles within a smoothing length and duplicate
+    // them, then rotate them 180 about the selected particle, placing them outside of the boundary.
+    // They are then given opposite velocities to the selected particle to stop it from going out
+    // of bounds.
+
+    // Seperate function as the scope of init_particles is cluttered with variable names I want to
+    // use and it's big enough already
+
+    // Search for boundary particles. If UNIFORM_DIST is defined, we could just immediately pick
+    // the indices 0 and n_part, but let's be universal for the sake of it!
+    double min_x = 0;
+    double min_x_idx;
+
+    double max_x = 0;
+    double max_x_idx;
+
+    for (int i = 0; i < c.n_part; i++) {
+        Particle& p = p_arr_ptr[i];
+        
+        if (p.pos < min_x) {
+            min_x_idx = i;
+            min_x = p.pos;
+        } else if (p.pos > max_x) {
+            max_x_idx = i;
+            max_x = p.pos;
+        }
+    }
+
+
+    Particle& left = p_arr_ptr[min_x_idx];
+    Particle& right = p_arr_ptr[max_x_idx];
+
+    // Collect neighbours
+    std::vector<Particle> l_neighbours; 
+    std::vector<Particle> r_neighbours;
+
+    for (int i = 0; i < c.n_part; i++) {
+        Particle& p = p_arr_ptr[i];
+
+        if (p == left || p == right)
+            // Don't collect the particles themselves
+            continue;
+
+        double l_dist = std::abs(p.pos - left.pos);
+        double r_dist = std::abs(p.pos - right.pos);
+
+        if (l_dist < c.smoothing_length)
+            l_neighbours.push_back(p);
+        else if (r_dist < c.smoothing_length)
+            r_neighbours.push_back(p);   
+    }
+
+    // Mirror neighbours
+    for (Particle &p : l_neighbours) {
+        // Add twice the vector joining the neighbour and origin particle to the neighbour
+        // particle's position
+        double vec = left.pos - p.pos;
+        p.pos += 2*vec;
+    }
+
+    for (Particle &p : r_neighbours) {
+        double vec = right.pos - p.pos;
+        p.pos += 2*vec;
+    }
+
+    // Add into array
+    for (int i = 0; i < l_neighbours.size(); i++) {
+        // Left neighbours go right at the end of the array
+        int idx = c.n_part + i;
+        Particle& p = p_arr_ptr[idx];
+        Particle to_copy = l_neighbours[i];
+
+        // Copy particle properties. I don't trust memcpy lol
+        p.mass = to_copy.mass;
+        p.pos = to_copy.pos;
+        p.vel = -to_copy.vel;
+        // accel won't be initialized in to_copy yet
+        p.type = Ghost;
+    }
+
+    c.n_part += l_neighbours.size();
+    c.n_ghost += r_neighbours.size();
+
+    for (int i = 0; i < r_neighbours.size(); i++) {
+        // Right neighbours follow
+        int idx = c.n_part + i;
+        Particle& p = p_arr_ptr[idx];
+        Particle to_copy = r_neighbours[i];
+
+        p.mass = to_copy.mass;
+        p.pos = to_copy.pos;
+        p.vel = -to_copy.vel;
+        p.type = Ghost;
+    }
+
+    c.n_part += l_neighbours.size();
+    c.n_ghost += r_neighbours.size();
+
+    std::cout << "[INFO] Initialized " << c.n_ghost << " ghost particles." << std::endl;
+}
+
+#pragma endregion
+
+

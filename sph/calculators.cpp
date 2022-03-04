@@ -73,6 +73,9 @@ void DensityCalculator::operator()(Particle &p_i) {
 #pragma region AccelerationCalculator
 
 void AccelerationCalculator::operator()(Particle &p_i) {
+    if (p_i.type == Ghost)
+        return;
+
     // I have tried to use variable names that correspond to how this equation is typeset in the
     // Bate thesis. Pr = pressure, p = particle, rho = density, W = weight function
     double c_s = sound_speed();

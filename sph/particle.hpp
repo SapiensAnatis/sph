@@ -10,8 +10,12 @@
 
 enum ParticleType {
     Alive,
-    Dead,
     Ghost
+};
+
+const char* const ParticleTypeNames[3] = {
+    "Alive",
+    "Ghost"
 };
 
 // 'global' particle counter, so creator of Particle doesn't have to keep track
@@ -42,6 +46,12 @@ struct Particle {
     Particle() : id(_particle_counter), type(Alive)
     {
         _particle_counter++;
+    }
+
+    // Equality operator
+    bool operator ==(Particle p) {
+        // Check id
+        return (id == p.id);
     }
 
     // Inequality operator
