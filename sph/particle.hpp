@@ -7,13 +7,13 @@
 #ifndef particle_hpp // Include guard
 #define particle_hpp
 
-
 enum ParticleType {
     Alive,
     Ghost
 };
 
-const char* const ParticleTypeNames[3] = {
+// Used to display particle type as a string, rather than number, in dump files
+const char* const ParticleTypeNames[2] = {
     "Alive",
     "Ghost"
 };
@@ -50,6 +50,9 @@ struct Particle {
     
     // Assignment operator
     Particle& operator =(Particle &p) {
+        // Don't copy id. This ensures that id is unique between particles. It does however result
+        // in the slightly odd issue with them not starting at 0 due to array reallocation, as
+        // described in setup.cpp
         mass = p.mass;
         pos = p.pos;
         vel = p.vel;
@@ -70,7 +73,6 @@ struct Particle {
 
     // Inequality operator
     bool operator !=(Particle p) {
-        // Check id
         return (id != p.id);
     }
 };

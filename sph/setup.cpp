@@ -125,8 +125,9 @@ void ConfigReader::set_property(PressureCalc &prop, ConfigMap &config_map, const
     // Just need to get string property as int, then pass to PressureCalc enum constructor. Use
     // existing int fetch method
     int tmp_prop;
+    std::cout << "Got value of " << tmp_prop << " for tmp_prop" << std::endl;
     set_property(tmp_prop, config_map, prop_name);
-    prop = PressureCalc(prop);
+    prop = (PressureCalc)tmp_prop;
 }
 
 #pragma endregion
@@ -277,7 +278,7 @@ void init_ghost_particles(Config &c, ParticleArrayPtr &p_arr_ptr) {
     std::copy(r_neighbours.begin(), r_neighbours.end(), p_arr_ptr.get() + c.n_part);
 
     c.n_part += r_neighbours.size();
-    // Ghost counter is diagnostic/curiosity info more than anything else
+    // Ghost counter is diagnostic/curiosity info more than anything else.
     c.n_ghost = n_ghost;
 }
 
