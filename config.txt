@@ -3,7 +3,7 @@
 # Lines should be structured as 'PROPERTYNAME VALUE' (i.e. separated by 1 space)
 
 # Number of particles to create at program start.
-n_part 201
+n_part 51
 
 # The units of distance that the code will use.
 d_unit 1

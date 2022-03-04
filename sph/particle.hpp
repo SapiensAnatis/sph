@@ -37,7 +37,7 @@ struct Particle {
 
     // Full initializer for unit tests
     Particle(double pos, double vel, double mass)
-        : id(_particle_counter), mass(mass), pos(pos), vel(vel), acc(0), u(0), density(0), type(Alive)
+        : id(_particle_counter), mass(mass), pos(pos), vel(vel), acc(0), u(0), density(0), pressure(0), type(Alive)
     {
         _particle_counter++;
     }
@@ -46,6 +46,20 @@ struct Particle {
     Particle() : id(_particle_counter), type(Alive)
     {
         _particle_counter++;
+    }
+    
+    // Assignment operator
+    Particle& operator =(Particle &p) {
+        mass = p.mass;
+        pos = p.pos;
+        vel = p.vel;
+        acc = p.acc;
+        u = p.u;
+        density = p.density;
+        pressure = p.pressure;
+        type = p.type;
+
+        return *this;
     }
 
     // Equality operator

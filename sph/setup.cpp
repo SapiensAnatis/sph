@@ -158,6 +158,7 @@ void init_particles(Config &c, ParticleArrayPtr p_arr_ptr)
     }
 
     init_ghost_particles(c, p_arr_ptr);
+    std::cout << "[INFO] Initialized " << c.n_part << " total particles." << std::endl;
 }
 
 void init_ghost_particles(Config &c, ParticleArrayPtr p_arr_ptr) {
@@ -221,44 +222,44 @@ void init_ghost_particles(Config &c, ParticleArrayPtr p_arr_ptr) {
         // particle's position
         double vec = left.pos - p.pos;
         p.pos += 2*vec;
+        p.vel *= -1;
+        p.type = Ghost;
     }
 
     for (Particle &p : r_neighbours) {
         double vec = right.pos - p.pos;
         p.pos += 2*vec;
+        p.vel *= -1;
+        p.type = Ghost;
     }
 
-    // Add into array
+    // Add into array. Can't assign so have to copy properties manually, no std::copy
+    // LMAO I'm such an idiot for not using vectors
+    //memcpy(p_arr_ptr.get() + c.n_part, l_neighbours.data(), l_neighbours.size() * sizeof(Particle));
+    
     for (int i = 0; i < l_neighbours.size(); i++) {
         // Left neighbours go right at the end of the array
         int idx = c.n_part + i;
         Particle& p = p_arr_ptr[idx];
         Particle to_copy = l_neighbours[i];
 
-        // Copy particle properties. I don't trust memcpy lol
-        p.mass = to_copy.mass;
-        p.pos = to_copy.pos;
-        p.vel = -to_copy.vel;
-        // accel won't be initialized in to_copy yet
-        p.type = Ghost;
+        p = to_copy;
     }
-
+    
     c.n_part += l_neighbours.size();
-    c.n_ghost += r_neighbours.size();
+    c.n_ghost += l_neighbours.size();
 
+    
     for (int i = 0; i < r_neighbours.size(); i++) {
         // Right neighbours follow
         int idx = c.n_part + i;
         Particle& p = p_arr_ptr[idx];
         Particle to_copy = r_neighbours[i];
 
-        p.mass = to_copy.mass;
-        p.pos = to_copy.pos;
-        p.vel = -to_copy.vel;
-        p.type = Ghost;
+        p = to_copy;
     }
-
-    c.n_part += l_neighbours.size();
+    
+    c.n_part += r_neighbours.size();
     c.n_ghost += r_neighbours.size();
 
     std::cout << "[INFO] Initialized " << c.n_ghost << " ghost particles." << std::endl;
