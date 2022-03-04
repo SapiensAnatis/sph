@@ -3,11 +3,11 @@
 # Lines should be structured as 'PROPERTYNAME VALUE' (i.e. separated by 1 space)
 
 # Number of particles to create at program start.
-n_part 10
+n_part 201
 
-# The units of distance, in m, that the code will use.
+# The units of distance that the code will use.
 d_unit 1
-# The units of time, in seconds, that the code will use.
+# The units of time that the code will use.
 t_unit 1
 
 # The mass to use for all of the particles, in kg
@@ -23,10 +23,10 @@ pressure_calc 0
 limit 1
 
 # The initial velocity to give to particles when setting up the calculation
-v_0 12
+v_0 1
 
 # The smoothing length
-smoothing_length 1
+smoothing_length 0.1
 
 # The initial timestep to use for the simulation
 # To be integrated later

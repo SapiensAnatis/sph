@@ -27,6 +27,7 @@ struct Particle {
 
     double u; // energy
     double density;
+    double pressure;
 
     ParticleType type;
 

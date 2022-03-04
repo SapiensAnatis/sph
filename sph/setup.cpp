@@ -6,6 +6,8 @@
  */
 
 
+#define UNIFORM_DIST
+
 #include <iostream>
 #include <random>
 #include <memory>
@@ -122,12 +124,21 @@ void init_particles(const Config &c, ParticleArrayPtr p_arr_ptr)
     double max_x = c.limit * c.d_unit;
     double min_x = -max_x;
 
-    // Ensure randomness of position generation
-    auto eng = std::default_random_engine(std::random_device{}());
-    auto rand = std::uniform_real_distribution<double>(min_x, max_x);
+    #ifndef UNIFORM_DIST
+        // Ensure randomness of position generation
+        auto eng = std::default_random_engine(std::random_device{}());
+        auto rand = std::uniform_real_distribution<double>(min_x, max_x);
+    #endif
 
     for (int i = 0; i < c.n_part; i++) {
-        double pos = rand(eng);
+        #ifndef UNIFORM_DIST
+            double pos = rand(eng);
+        #endif
+
+        #ifdef UNIFORM_DIST
+            double spacing = (max_x - min_x) / (c.n_part-1);
+            double pos = min_x + spacing * i;
+        #endif
         // +v_0 if pos negative, -v_0 otherwise
         double vel = (pos < 0) ? c.v_0 : -c.v_0;
         

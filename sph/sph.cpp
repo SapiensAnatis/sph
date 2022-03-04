@@ -4,7 +4,7 @@
  * sph.cpp implements the functions defined and explained in sph.hpp.
  */
 
-#include <gsl/gsl_odeiv2.h>
+#include <cstdio>
 
 #include "sph.hpp"
 
@@ -65,7 +65,15 @@ void SPHSimulation::file_write() {
 
     for (int i = 0; i < config.n_part; i++) {
         Particle& p = p_arr[i];
-        outstream << p.id << "    " << p.density << "    " << p.acc << "    " << p.vel << "    " << p.pos << std::endl;
+        // Bit of C-style code here...
+        // I want to format the strings so the floats use the same d.p. and it all lines up nicely.
+        // But for some reason, no major compiler has an implementation of std::format from C++20
+        // yet, and I didn't feel like adding an external dependency e.g.
+        // https://github.com/fmtlib/fmt
+        
+        char buffer[256];
+        sprintf(buffer, "%4d    %+3.3f    %+3.3f    %+3.3f    %+3.3f\n", p.id, p.density, p.acc, p.vel, p.pos);
+        outstream << buffer;
     }
 
     outstream.close();
