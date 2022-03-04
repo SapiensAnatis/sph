@@ -60,12 +60,10 @@ void DensityCalculator::operator()(Particle &p_i) {
 
     for (int i = 0; i < config.n_part; i++) {
         Particle &p_j = p_all[i];
-        if (p_i != p_j) { // i != j
-            double q = std::abs(p_i.pos - p_j.pos) / h;
-            double w = Kernel::kernel(q);
-            
-            density += p_i.mass * (w / h);
-        }
+        double q = std::abs(p_i.pos - p_j.pos) / h;
+        double w = Kernel::kernel(q);
+        
+        density += p_i.mass * (w / h);
     }
 
     p_i.density = density;
@@ -79,6 +77,7 @@ void AccelerationCalculator::operator()(Particle &p_i) {
     // Bate thesis. Pr = pressure, p = particle, rho = density, W = weight function
     double c_s = sound_speed();
     double Pr_i = pressure_isothermal(p_i, c_s);
+    p_i.pressure = Pr_i;
     double Pr_rho_i = Pr_i / std::pow(p_i.density, 2);
     double h = Kernel::smoothing_length(config);
 
@@ -94,9 +93,13 @@ void AccelerationCalculator::operator()(Particle &p_i) {
         if (p_j != p_i) {
             // It probably isn't efficient to declare so many variables, but it makes the code more
             // readable, and they probably get optimized out by the compiler anyway(?)
-            double r_ij = std::abs(p_i.pos - p_j.pos);
-            double q = r_ij / h;
-            double grad_W = Kernel::d_kernel(q);
+            double r_ij = p_i.pos - p_j.pos;
+
+            // The unit vector is +-1, depending on the sign of the vector, because we are in 1D
+            double r_ij_unit = (r_ij > 0) ? 1 : -1;
+
+            double q = std::abs(r_ij) / h;
+            double grad_W = Kernel::d_kernel(q) * r_ij_unit; // Rosswog 2009 eq. 25
 
             double Pr_j;
             if (config.pressure_calc == Isothermal)
@@ -107,8 +110,9 @@ void AccelerationCalculator::operator()(Particle &p_i) {
             double Pr_rho_j = Pr_j / std::pow(p_j.density, 2);
 
             double visc_ij = artificial_viscosity(p_i, p_j, r_ij, h, c_s);
-            
-            acc += p_j.mass * (Pr_rho_i + Pr_rho_j + visc_ij) * grad_W;
+            double to_add = -p_j.mass * (Pr_rho_i + Pr_rho_j + visc_ij) * grad_W;
+            acc += to_add;
+            // Breakpoint analysis: for r_ij = -0.35531, visc_ij = 1724.1 (!)
         }
     }
 
@@ -120,9 +124,9 @@ double AccelerationCalculator::pressure_isothermal(const Particle &p, double c_s
 }
 
 double AccelerationCalculator::sound_speed() {
-    // 10 m.s^-1 in code units. Normally we multiply by the unit to use code units,
+    // 1 m.s^-1 in code units. Normally we multiply by the unit to use code units,
     // but this was originally given in m.s^-1 so the process is reversed
-    return 10 / (config.d_unit / config.t_unit);
+    return 1 / (config.d_unit / config.t_unit);
 }
 
 double AccelerationCalculator::artificial_viscosity(
