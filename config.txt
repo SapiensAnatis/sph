@@ -30,4 +30,4 @@ smoothing_length 0.1
 
 # The initial timestep to use for the simulation
 # To be integrated later
-# t_i = 0.1
+t_i = 0.1

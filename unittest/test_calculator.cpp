@@ -47,9 +47,9 @@ TEST_F(CalcTestFixture, DensityCalc) {
         dc(p_arr[i]);
     }
 
-    EXPECT_FLOAT_EQ(p_arr[0].density, 31.0/48.0);
-    EXPECT_FLOAT_EQ(p_arr[1].density, 23.0/24.0);
-    EXPECT_FLOAT_EQ(p_arr[2].density, 31.0/48.0);
+    EXPECT_FLOAT_EQ(p_arr[0].density, 31.0/48.0 + 2.0/3.0);
+    EXPECT_FLOAT_EQ(p_arr[1].density, 23.0/24.0 + 2.0/3.0);
+    EXPECT_FLOAT_EQ(p_arr[2].density, 31.0/48.0 + 2.0/3.0);
 }
 
 /*

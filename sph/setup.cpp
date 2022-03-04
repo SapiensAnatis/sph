@@ -29,6 +29,7 @@ ConfigReader::ConfigReader(std::istream &config_stream) {
     set_property(config.limit, config_map, "limit");
     set_property(config.v_0, config_map, "v_0");
     set_property(config.smoothing_length, config_map, "smoothing_length");
+    set_property(config.t_i, config_map, "t_i");
 
 }
 
@@ -149,4 +150,5 @@ void init_particles(const Config &c, ParticleArrayPtr p_arr_ptr)
     }
 
     // TODO: Initialize ghost particles near boundaries
+    
 }

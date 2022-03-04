@@ -10,7 +10,7 @@
 
 void SPHSimulation::start(double end_time) {
     // First calculate density and acceleration for all particles at t = 0
-    // Consecutive for loops: acceleration calculation requires that density is define for every
+    // Consecutive for loops: acceleration calculation requires that density is defined for every
     // other particle (otherwise div by zero!)
 
     // These print statements help to identify where the program has had an error, if one occurs.
@@ -61,7 +61,7 @@ void SPHSimulation::file_write() {
     outstream.open("/home/jay/Dropbox/University/Y4/PHYM004/sph/dumps/" + std::to_string(dump_counter) + ".txt");
     outstream << "# Code units: distance = " << config.d_unit << ", time = " << config.t_unit << std::endl;
     outstream << "# This file was dumped at t = " << current_time << std::endl;
-    outstream << "# Columns: Particle ID / Density / Particle acceleration / Particle velocity / Particle position" << std::endl;
+    outstream << "# Columns: Particle ID / Density / Pressure / Particle acceleration / Particle velocity / Particle position" << std::endl;
 
     for (int i = 0; i < config.n_part; i++) {
         Particle& p = p_arr[i];
@@ -72,7 +72,7 @@ void SPHSimulation::file_write() {
         // https://github.com/fmtlib/fmt
         
         char buffer[256];
-        sprintf(buffer, "%4d    %+3.3f    %+3.3f    %+3.3f    %+3.3f\n", p.id, p.density, p.acc, p.vel, p.pos);
+        sprintf(buffer, "%4d    %+3.3f    %3.3f    %+3.3f    %+3.3f    %+3.3f\n", p.id, p.density, p.pressure, p.acc, p.vel, p.pos);
         outstream << buffer;
     }
 

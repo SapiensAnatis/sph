@@ -43,6 +43,7 @@ struct Config {
     double limit;
     double v_0;
     double smoothing_length;
+    double t_i;
 };
 
 // Config class, used to store configuration properties. Has a constructor that takes in the

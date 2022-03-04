@@ -36,6 +36,7 @@ TEST(ConfigClassTest, ReadConfigStream) {
         "limit 1",
         "v_0 8",
         "smoothing_length 1",
+        "t_i 1",
     });
 
     auto config_reader = ConfigReader(stream);
@@ -49,6 +50,7 @@ TEST(ConfigClassTest, ReadConfigStream) {
     EXPECT_EQ(config.limit, 1);
     EXPECT_EQ(config.v_0, 8);
     EXPECT_EQ(config.smoothing_length, 1);
+    EXPECT_EQ(config.t_i, 1);
 }
 
 TEST(ConfigClassTest, ReadBadConfig) {
@@ -62,7 +64,8 @@ TEST(ConfigClassTest, ReadBadConfig) {
         "t_unit 2",
         "limit 1",
         "v_0 10",
-        "smoothing_length 1"
+        "smoothing_length 1",
+        "t_i 1",
     });
 
     EXPECT_EXIT(
@@ -84,6 +87,7 @@ TEST(ConfigClassTest, ReadDupedConfig) {
         "v_0 12",
         "v_0 19",
         "smoothing_length 1",
+        "t_i 1",
     });
     
     auto config_reader = ConfigReader(stream);
@@ -138,6 +142,7 @@ TEST(ParticleSetup, CorrectMass) {
         "limit 1",
         "v_0 12",
         "smoothing_length 1",
+        "t_i 1",
     });
 
     auto config_reader = ConfigReader(stream);
@@ -164,6 +169,7 @@ TEST(ParticleSetup, CorrectVZero) {
         "limit 1",
         "v_0 12",
         "smoothing_length 1",
+        "t_i 1",
     });
 
     auto config_reader = ConfigReader(stream);
