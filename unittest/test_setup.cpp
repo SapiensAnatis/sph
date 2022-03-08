@@ -29,8 +29,6 @@ std::istringstream build_config_stream(std::vector<std::string> line_vector) {
 TEST(ConfigClassTest, ReadConfigStream) {
     std::istringstream stream = build_config_stream({
         "n_part 4",
-        "d_unit 3",
-        "t_unit 2",
         "mass 10",
         "pressure_calc 0",
         "limit 1",
@@ -43,8 +41,6 @@ TEST(ConfigClassTest, ReadConfigStream) {
     Config config = config_reader.GetConfig();
 
     EXPECT_EQ(config.n_part, 4);
-    EXPECT_EQ(config.d_unit, 3);
-    EXPECT_EQ(config.t_unit, 2);
     EXPECT_EQ(config.mass, 10);
     EXPECT_EQ(config.pressure_calc, Isothermal);
     EXPECT_EQ(config.limit, 1);
@@ -57,11 +53,9 @@ TEST(ConfigClassTest, ReadBadConfig) {
     // Should give status 1 as bad_param has no value
     std::istringstream stream = build_config_stream({
         "bad_param",
-        "d_unit 3000",
         "n_part 4",
         "mass 1",
         "pressure_calc 0",
-        "t_unit 2",
         "limit 1",
         "v_0 10",
         "smoothing_length 1",
@@ -78,8 +72,6 @@ TEST(ConfigClassTest, ReadDupedConfig) {
     // Duplicated value
     std::istringstream stream = build_config_stream({
         "n_part 4",
-        "d_unit 3",
-        "t_unit 2",
         "mass 10",
         "pressure_calc 0",
         "limit 1",
@@ -94,7 +86,6 @@ TEST(ConfigClassTest, ReadDupedConfig) {
     Config config = config_reader.GetConfig();
 
     EXPECT_EQ(config.n_part, 4);
-    EXPECT_EQ(config.d_unit, 3);
     EXPECT_EQ(config.v_0, 12);
 }
 
@@ -135,8 +126,6 @@ TEST(ParticleSetup, CorrectNParticles) {
 TEST(ParticleSetup, CorrectMass) {
     std::istringstream stream = build_config_stream({
         "n_part 25",
-        "d_unit 1",
-        "t_unit 1",
         "mass 15",
         "pressure_calc 0",
         "limit 1",
@@ -162,8 +151,6 @@ TEST(ParticleSetup, CorrectVZero) {
     // position is negative, but velocity should be negative if position is positive.
     std::istringstream stream = build_config_stream({
         "n_part 20",
-        "d_unit 1",
-        "t_unit 1",
         "mass 10",
         "pressure_calc 0",
         "limit 1",

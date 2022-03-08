@@ -48,7 +48,7 @@ double Kernel::d_kernel(double q) {
 
 // This returns a constant for now, but may later use variable smoothing lengths
 double Kernel::smoothing_length(const Config &c) {
-    return c.smoothing_length * c.d_unit;
+    return c.smoothing_length;
 }
 
 #pragma endregion
@@ -127,9 +127,8 @@ double AccelerationCalculator::pressure_isothermal(const Particle &p, double c_s
 }
 
 double AccelerationCalculator::sound_speed() {
-    // 1 m.s^-1 in code units. Normally we multiply by the unit to use code units,
-    // but this was originally given in m.s^-1 so the process is reversed
-    return 1 / (config.d_unit / config.t_unit);
+    // 1 m.s^-1
+    return 1;
 }
 
 double AccelerationCalculator::artificial_viscosity(

@@ -29,8 +29,6 @@ class CalcTestFixture : public ::testing::Test {
             config = Config(); 
 
             config.n_part = 3;
-            config.d_unit = 1;
-            config.t_unit = 1;
             config.mass = 1;
             config.limit = 1;
             config.v_0 = 10;

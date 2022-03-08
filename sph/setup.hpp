@@ -37,8 +37,6 @@ enum PressureCalc {
 struct Config {
     int n_part;
     int n_ghost; // Not set from ConfigReader
-    double d_unit;
-    double t_unit;
     double mass;
     PressureCalc pressure_calc;
     double limit;

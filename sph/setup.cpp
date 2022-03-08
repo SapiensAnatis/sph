@@ -23,8 +23,6 @@ ConfigReader::ConfigReader(std::istream &config_stream) {
     ConfigMap config_map = parse_config(config_stream);
     
     set_property(config.n_part, config_map, "n_part");
-    set_property(config.d_unit, config_map, "d_unit");
-    set_property(config.t_unit, config_map, "t_unit");
     set_property(config.mass, config_map, "mass");
     set_property(config.pressure_calc, config_map, "pressure_calc");
     set_property(config.limit, config_map, "limit");
@@ -125,7 +123,6 @@ void ConfigReader::set_property(PressureCalc &prop, ConfigMap &config_map, const
     // Just need to get string property as int, then pass to PressureCalc enum constructor. Use
     // existing int fetch method
     int tmp_prop;
-    std::cout << "Got value of " << tmp_prop << " for tmp_prop" << std::endl;
     set_property(tmp_prop, config_map, prop_name);
     prop = (PressureCalc)tmp_prop;
 }
@@ -135,7 +132,7 @@ void ConfigReader::set_property(PressureCalc &prop, ConfigMap &config_map, const
 
 void init_particles(Config &c, ParticleArrayPtr &p_arr_ptr)
 {
-    double max_x = c.limit * c.d_unit;
+    double max_x = c.limit;
     double min_x = -max_x;
 
     #ifndef UNIFORM_DIST
@@ -189,6 +186,8 @@ void init_ghost_particles(Config &c, ParticleArrayPtr &p_arr_ptr) {
     double max_x = 0;
     double max_x_idx;
 
+    // Just going through keeping track of what the lowest/highest positions seen so far is, and
+    // their corresponding indices
     for (int i = 0; i < c.n_part; i++) {
         Particle& p = p_arr_ptr[i];
         
@@ -205,7 +204,7 @@ void init_ghost_particles(Config &c, ParticleArrayPtr &p_arr_ptr) {
     Particle& left = p_arr_ptr[min_x_idx];
     Particle& right = p_arr_ptr[max_x_idx];
 
-    // Collect neighbours
+    // Collect neighbours of left and right
     std::vector<Particle> l_neighbours; 
     std::vector<Particle> r_neighbours;
 
@@ -256,14 +255,10 @@ void init_ghost_particles(Config &c, ParticleArrayPtr &p_arr_ptr) {
     std::copy(old_ptr, old_ptr + c.n_part, new_ptr);
     // Note: there is an unintended side effect to this approach: particle ids will actually start
     // at n_part rather than 0, due to all the particles being copied over above... This is because
-    // the assignment constructor does not copy over particle id, and the array members are default
-    // initialized using a global counter, so the initialization of the new array doesn't start at
-    // 0. It shouldn't matter because the id is only used for comparison (p1 == p2 etc.), and there
-    // is no assumption that it starts at 0.
-    
-    // A minor cosmetic quirk that is certainly better than speculatively pre-allocating up to 3 *
-    // n_part indexes worth of memory to fit the ghost particles in! (If the smoothing length is
-    // infinite, then the whole array would have to be appened twice over as ghost particles.)
+    // the assignment operator does not copy over particle id (thus ensuring it is always unique),
+    // and ids 0-n_part were already used in the initial allocation of the array. It shouldn't
+    // matter because the id is only used for comparison (p1 == p2 etc.), and there is no assumption
+    // that it starts at 0.
 
     // Reinitialize shared ptr
     p_arr_ptr.reset(new_ptr);
