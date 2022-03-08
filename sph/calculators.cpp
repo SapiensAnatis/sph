@@ -7,6 +7,8 @@
 #include <cmath>
 #include <exception>
 #include <iostream>
+#include <gsl/gsl_vector.h>
+#include <gsl/gsl_multiroots.h>
 
 #include "calculators.hpp"
 
@@ -53,20 +55,113 @@ double Kernel::smoothing_length(const Config &c) {
 
 #pragma endregion
 #pragma region DensityCalculator
+// The code for root-finding the variable smoothing length is largely based on the Rosenbrock
+// example in the GSL documentation:
+// https://www.gnu.org/software/gsl/doc/html/multiroots.html#examples
 
-void DensityCalculator::operator()(Particle &p_i) {
-    double h = Kernel::smoothing_length(config);
-    double density = 0;
+// Params for root-finding method
+struct params
+{
+    Particle* p; // Particle in question
+    Particle* p_arr; // Pointer to array of particles
+    int n_part; // Length of above array
+    double eta; // Smoothing length parameter; see Price 2010 eq. 10
+};
 
-    for (int i = 0; i < config.n_part; i++) {
-        Particle &p_j = p_all[i];
-        double q = std::abs(p_i.pos - p_j.pos) / h;
+// Method defining the system of equations
+int smoothing_f(const gsl_vector* x, void* params, gsl_vector* f) {
+    // Get parameters
+    Particle p = *((struct params*)params)->p;
+    Particle* p_arr = ((struct params*)params)->p_arr;
+    int n_part = ((struct params*)params)->n_part;
+    double eta = ((struct params*)params)->eta;
+
+    // Smoothing length
+    const double x0 = gsl_vector_get(x, 0);
+
+    // Density
+    const double x1 = gsl_vector_get(x, 1);
+
+    // Calculate density via sum over other particles
+    double d_sum = 0;
+    for (int i = 0; i < n_part; i++) {
+        Particle p_j = *(p_arr + i);
+        double q = std::abs(p.pos - p_j.pos) / x0;
         double w = Kernel::kernel(q);
-        
-        density += p_i.mass * (w / h);
+
+        d_sum += p.mass * (w / x0);
     }
 
-    p_i.density = density;
+    // Smoothing length equation: h - eta(m/rho) = 0
+    const double f0 = x0 - eta*(p.mass / x1);
+    // Density equation: rho - sum = 0
+    const double f1 = x1 - d_sum;
+
+    gsl_vector_set(f, 0, f0);
+    gsl_vector_set(f, 1, f1);
+
+    return GSL_SUCCESS;
+}
+
+void print_state (size_t iter, gsl_multiroot_fsolver* s)
+{
+  printf("iter = %3lu x = % .3f % .3f f(x) = % .3e % .3e\n",
+         iter,
+         gsl_vector_get (s->x, 0),
+         gsl_vector_get (s->x, 1),
+         gsl_vector_get (s->f, 0),
+         gsl_vector_get (s->f, 1));
+}
+
+// operator() sets up a GSL solver to employ a root-finding method and vary the smoothing length.
+// I'm using a root-finding algorithm that doesn't require derivatives because taking the derivative
+// of the density sounds like a nightmare
+void DensityCalculator::operator()(Particle &p_i) {
+    const gsl_multiroot_fsolver_type *T;
+    gsl_multiroot_fsolver *s;
+
+    int status;
+    size_t iter = 0;
+
+    struct params param = {
+        &p_i,
+        p_all.get(),
+        config.n_part,
+        config.smoothing_length
+    };
+
+    gsl_multiroot_function f = {&smoothing_f, 2, &param};
+
+    // Initial guess for {smoothing length, density}
+    double x_init[2] = {1, 1};
+    gsl_vector* x = gsl_vector_alloc(2);
+    gsl_vector_set(x, 0, x_init[0]);
+    gsl_vector_set(x, 1, x_init[1]);
+
+    T = gsl_multiroot_fsolver_hybrids;
+    s = gsl_multiroot_fsolver_alloc(T, 2);
+    gsl_multiroot_fsolver_set(s, &f, x);
+
+    do {
+        iter++;
+        status = gsl_multiroot_fsolver_iterate(s);
+
+        if (status)
+            break;
+        
+        status = gsl_multiroot_test_residual(s->f, 1e-7);
+    } while (status == GSL_CONTINUE && iter < 1000);
+
+    if (status != GSL_SUCCESS) {
+        std::cout << "[WARN] Root-finding failed for particle id " << p_i.id << " with status "
+                  << gsl_strerror(status) << std::endl; 
+    }
+    
+    // Retrieve density
+    p_i.density = gsl_vector_get(x, 1);
+
+    gsl_multiroot_fsolver_free(s);
+    gsl_vector_free(x);
 }
 
 #pragma endregion
@@ -115,7 +210,6 @@ void AccelerationCalculator::operator()(Particle &p_i) {
             double visc_ij = artificial_viscosity(p_i, p_j, r_ij, h, c_s);
             double to_add = -p_j.mass * (Pr_rho_i + Pr_rho_j + visc_ij) * grad_W;
             acc += to_add;
-            // Breakpoint analysis: for r_ij = -0.35531, visc_ij = 1724.1 (!)
         }
     }
 

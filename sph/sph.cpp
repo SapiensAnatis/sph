@@ -35,11 +35,11 @@ void SPHSimulation::start(double end_time) {
     
     // probably due to rounding error!
     
-    while (current_time < (end_time - CALC_EPSILON)) {
+    /* while (current_time < (end_time - CALC_EPSILON)) {
         current_time += timestep;
         std::cout << "[INFO] Simulation time: " << current_time << " / " << end_time << std::endl;
         step_forward();
-    }
+    } */
 }
 
 void SPHSimulation::step_forward() {
