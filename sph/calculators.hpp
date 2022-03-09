@@ -48,12 +48,18 @@ class Calculator {
 };
 
 
+// Actual iterative density calculation (Equation 2.21 of Bate thesis)
+// The fact that it is outside of the class, and uses direct pointers/doesn't use p.h for smoothing
+// length is because it's used inside the GSL root-finding method (and also outside).
+double calc_density(const Particle &p, const double h, const Particle* p_arr, const int n_part);
+
 class DensityCalculator : public Calculator {
     public:
         // ctor -- just call base class
         DensityCalculator(const Config &c, ParticleArrayPtr p_arr_ptr) 
             : Calculator(c, p_arr_ptr) {};
-        // Equation 2.21 of Bate thesis
+        
+        // Calculate the smoothing length for a particle and then the density
         void operator()(Particle &p) override;
 };
 
@@ -71,16 +77,6 @@ class AccelerationCalculator : public Calculator {
         void operator()(Particle &p_i) override;
 
     private:
-        /*
-         * These 'intermediate quantities' could have their own class as well as be properties of
-         * Particle. After all, density was -- so why not everything else?
-         * 
-         * I decided against this because density is probably the only quantity that would have to
-         * be analyzed (as per the project brief). Also, having extraneous fields on the Particle
-         * would increase the memory footprint for each particle slightly, and this would accumulate
-         * quickly for a simulation with many thousands of particles.
-         */
-
         /* Calculate pressure using isothermal equation of state (Bate thesis 2.22)
          * Parameters:
          *      p: calculate the pressure using the density estimate at this particle

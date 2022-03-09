@@ -19,8 +19,8 @@ limit 1
 v_0 1
 
 # Smoothing length in terms of mean particle spacing (a.k.a. eta parameter, see Price 2010 eq. 10)
-# The number of neighbours for each particle is about four times this value
-smoothing_length 1
+# The number of neighbours for each particle is approximately four times this value
+smoothing_length 2
 
 # The initial timestep to use for the simulation
 t_i 0.005

@@ -29,6 +29,8 @@ struct Particle {
     double vel;
     double acc;
 
+    double h; // Smoothing length
+
     double u; // energy
     double density;
     double pressure;

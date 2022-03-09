@@ -35,11 +35,11 @@ void SPHSimulation::start(double end_time) {
     
     // probably due to rounding error!
     
-    /* while (current_time < (end_time - CALC_EPSILON)) {
+    while (current_time < (end_time - CALC_EPSILON)) {
         current_time += timestep;
         std::cout << "[INFO] Simulation time: " << current_time << " / " << end_time << std::endl;
         step_forward();
-    } */
+    }
 }
 
 void SPHSimulation::step_forward() {
@@ -73,8 +73,10 @@ void SPHSimulation::file_write() {
     // TODO: make this less hardcoded later
     outstream.open("/home/jay/Dropbox/University/Y4/PHYM004/sph/dumps/" + std::to_string(dump_counter) + ".txt");
     outstream << "# This file was dumped at t = " << current_time << std::endl;
-    outstream << "# Columns definitions:" << std::endl;
-    outstream << "#ID     TYPE     DENSITY  PRESS    ACCEL     VEL       POS" << std::endl;
+    outstream << "# Column definitions:" << std::endl;
+    outstream << "# Particle ID / Type / Smoothing length / Density / Pressure / Acceleration / Velocity / Position" << std::endl;
+    outstream << "# Aligned definition 'tags' for easier reading:" << std::endl;
+    outstream << "#ID     TYPE     H        DENSITY  PRESS    ACCEL     VEL        POS" << std::endl;
 
     for (int i = 0; i < config.n_part; i++) {
         Particle& p = p_arr[i];
@@ -85,7 +87,8 @@ void SPHSimulation::file_write() {
         // https://github.com/fmtlib/fmt
         
         char buffer[256];
-        sprintf(buffer, "%4d    %s    %3.3f    %3.3f    %+3.3f    %+3.3f    %+3.3f\n", p.id, ParticleTypeNames[p.type], p.density, p.pressure, p.acc, p.vel, p.pos);
+        sprintf(buffer, "%4d    %s    %3.3f    %3.3f    %3.3f    %+3.3f    %+3.3f    %+3.3f\n", 
+                p.id, ParticleTypeNames[p.type], p.h, p.density, p.pressure, p.acc, p.vel, p.pos);
         outstream << buffer;
     }
 

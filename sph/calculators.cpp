@@ -1,8 +1,16 @@
 /* 
  * PHYM004 Project 2 / Jay Malhotra
  *
- * calculators.cpp implements the class methods defined in calculators.hpp.
+ * calculators.cpp implements the class methods defined in calculators.hpp, and also has a few
+ * free-floating non-exposed functions that are used by the GSL setup.
  */
+
+// Maximum number of iterations for root-finding of smoothing length
+#define H_MAX_ITER 1000
+// Epsilon for root-finding of smoothing length -- used to decide when to declare success
+#define H_EPSILON 1e-3
+// Show root-finding debug messages
+#define H_DEBUG
 
 #include <cmath>
 #include <exception>
@@ -68,7 +76,24 @@ struct params
     double eta; // Smoothing length parameter; see Price 2010 eq. 10
 };
 
-// Method defining the system of equations
+// This method and smoothing_f are not in the headers, since they aren't public interfaces. They are
+// solely used by DensityCalculator::operator().
+double calc_density(const Particle &p, const double h, const Particle* p_arr, const int n_part) {
+    double d_sum = 0;
+    for (int i = 0; i < n_part; i++) {
+        Particle p_j = *(p_arr + i);
+        double q = std::abs(p.pos - p_j.pos) / h;
+        double w = Kernel::kernel(q);
+
+        d_sum += p.mass * (w / h);
+    }
+
+    return d_sum;
+}
+
+
+// Method defining the system of equations. Can't be a member of DensityCalculator because it
+// changes the type of the function making it unacceptable to the GSL setup
 int smoothing_f(const gsl_vector* x, void* params, gsl_vector* f) {
     // Get parameters
     Particle p = *((struct params*)params)->p;
@@ -83,19 +108,19 @@ int smoothing_f(const gsl_vector* x, void* params, gsl_vector* f) {
     const double x1 = gsl_vector_get(x, 1);
 
     // Calculate density via sum over other particles
-    double d_sum = 0;
+    double density = 0;
     for (int i = 0; i < n_part; i++) {
         Particle p_j = *(p_arr + i);
         double q = std::abs(p.pos - p_j.pos) / x0;
         double w = Kernel::kernel(q);
 
-        d_sum += p.mass * (w / x0);
+        density += p.mass * (w / x0);
     }
 
     // Smoothing length equation: h - eta(m/rho) = 0
     const double f0 = x0 - eta*(p.mass / x1);
     // Density equation: rho - sum = 0
-    const double f1 = x1 - d_sum;
+    const double f1 = x1 - density;
 
     gsl_vector_set(f, 0, f0);
     gsl_vector_set(f, 1, f1);
@@ -132,8 +157,13 @@ void DensityCalculator::operator()(Particle &p_i) {
 
     gsl_multiroot_function f = {&smoothing_f, 2, &param};
 
-    // Initial guess for {smoothing length, density}
-    double x_init[2] = {1, 1};
+    // Initial guesses for {smoothing length, density}
+    // Mean particle spacing * neighbour parameter
+    double h_guess = ((config.limit * 2) / config.n_part) * config.smoothing_length; 
+    // Number density * mass
+    double rho_guess = (config.n_part / (config.limit * 2)) * config.mass;
+
+    double x_init[2] = {h_guess, rho_guess};
     gsl_vector* x = gsl_vector_alloc(2);
     gsl_vector_set(x, 0, x_init[0]);
     gsl_vector_set(x, 1, x_init[1]);
@@ -142,23 +172,52 @@ void DensityCalculator::operator()(Particle &p_i) {
     s = gsl_multiroot_fsolver_alloc(T, 2);
     gsl_multiroot_fsolver_set(s, &f, x);
 
+    // print_state(iter, s);
+
     do {
         iter++;
         status = gsl_multiroot_fsolver_iterate(s);
 
         if (status)
             break;
-        
-        status = gsl_multiroot_test_residual(s->f, 1e-7);
-    } while (status == GSL_CONTINUE && iter < 1000);
 
+        // print_state(iter, s);
+        
+        status = gsl_multiroot_test_residual(s->f, H_EPSILON);
+    } while (status == GSL_CONTINUE && iter < H_MAX_ITER);
+
+    #ifdef H_DEBUG
     if (status != GSL_SUCCESS) {
-        std::cout << "[WARN] Root-finding failed for particle id " << p_i.id << " with status "
-                  << gsl_strerror(status) << std::endl; 
+        std::cout << "[WARN] Smoothing length root-finding failed for particle id " << p_i.id << 
+                    " with status '" << gsl_strerror(status) << "'" << std::endl;
     }
+    #endif
     
-    // Retrieve density
-    p_i.density = gsl_vector_get(x, 1);
+    
+    // Retrieve smoothing length (with sanity check)
+    double h = gsl_vector_get(s->x, 0);
+    if (h < 0) {
+        std::cerr << "[ERROR] Smoothing length root-finding for particle id: " << p_i.id << 
+                  " returned negative smoothing length: " << h << std::endl;
+        throw new std::logic_error("Root-finding returned negative smoothing length");
+    }
+    p_i.h = gsl_vector_get(s->x, 0);
+
+    double density = gsl_vector_get(s->x, 1);
+
+    // Sometimes it finds a solution where density < 0, which is quite bizarre.
+    if (density > 0) {
+        p_i.density = density;
+    } else {
+        // We can probably resolve this by recalculating
+        std::cout << "[WARN] Smoothing length root-finding for particle id: " << p_i.id << 
+                  " returned negative density: " << density << std::endl;
+
+        double new_density = calc_density(p_i, p_i.h, p_all.get(), config.n_part);
+
+        std::cout << "[WARN] Recalculated above negative density as " << new_density << std::endl;
+        p_i.density = new_density;
+    }
 
     gsl_multiroot_fsolver_free(s);
     gsl_vector_free(x);
@@ -189,8 +248,6 @@ void AccelerationCalculator::operator()(Particle &p_i) {
         ensure_nonzero_density(p_j);
 
         if (p_j != p_i) {
-            // It probably isn't efficient to declare so many variables, but it makes the code more
-            // readable, and they probably get optimized out by the compiler anyway(?)
             double r_ij = p_i.pos - p_j.pos;
 
             // The unit vector is +-1, depending on the sign of the vector, because we are in 1D
