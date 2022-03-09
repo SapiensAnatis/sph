@@ -26,7 +26,7 @@ double kernel(double q) {
     }
 }
 
-double d_kernel(double q) {
+double dkernel_dq(double q) {
     double w;
     double sigma = 2.0/3.0;
 

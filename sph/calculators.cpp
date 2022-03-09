@@ -75,7 +75,7 @@ void AccelerationCalculator::operator()(Particle &p_i) {
             double r_ij_unit = (r_ij > 0) ? 1 : -1;
 
             double q = std::abs(r_ij) / p_i.h;
-            double grad_W = d_kernel(q) * r_ij_unit; // Rosswog 2009 eq. 25
+            double grad_W = dkernel_dq(q) * r_ij_unit; // Rosswog 2009 eq. 25
 
             double Pr_j;
             if (config.pressure_calc == Isothermal)

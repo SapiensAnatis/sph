@@ -17,10 +17,11 @@
 // Maximum number of iterations for root-finding of smoothing length
 #define H_MAX_ITER 1000
 // Epsilon for root-finding of smoothing length -- used to decide when to declare success
-#define H_EPSILON 1e-3
+#define H_EPSILON 1e-4
 // Show root-finding debug messages
 #define H_DEBUG
-
+// Use a derivative-based root-finding algorithm
+// #define USE_DERIVATIVE
 
 
 // Given a particle, the particle array, and initial guesses for smoothing length and density, use
