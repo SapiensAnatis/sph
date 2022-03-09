@@ -5,8 +5,6 @@
 #include "smoothing_length.hpp"
 #include "kernel.hpp"
 
-// #define GSL_DEBUG // Print the status of the solver after each iteration
-
 // The code for root-finding the variable smoothing length is largely based on the Rosenbrock
 // example in the GSL documentation:
 // https://www.gnu.org/software/gsl/doc/html/multiroots.html#examples
@@ -164,7 +162,7 @@ std::pair<double, double> rootfind_h(
     // Number density * mass
     double rho_guess = (c.n_part / (c.limit * 2)) * c.mass;
 
-    double x_init[2] = {1, 1};
+    double x_init[2] = {h_guess, rho_guess};
     gsl_vector* x = gsl_vector_alloc(2);
     gsl_vector_set(x, 0, x_init[0]);
     gsl_vector_set(x, 1, x_init[1]);
@@ -191,12 +189,11 @@ std::pair<double, double> rootfind_h(
         status = gsl_multiroot_test_residual(s->f, H_EPSILON);
     } while (status == GSL_CONTINUE && iter < H_MAX_ITER);
 
-    #ifdef H_DEBUG
+    #ifdef H_ERRORS
     if (status != GSL_SUCCESS) {
         std::cout << "[WARN] Smoothing length root-finding failed for particle id " << p.id << 
                      " with status '" << gsl_strerror(status) << "'" << std::endl;
     }
-    std::cout << std::endl;
     #endif
 
     double h = gsl_vector_get(s->x, 0);
@@ -210,8 +207,9 @@ std::pair<double, double> rootfind_h(
 #endif
 
 #ifndef USE_DERIVATIVE
-// Print the current state of the solver. Useful when wanting to see the step-by-step in case it
-// produces silly values. Only used if GSL_DEBUG is defined.
+// if we're not using derivatives, every mention of gsl_multiroot_fdfsolver has to be changed to
+// gsl_multiroot_fdfsolver etc. so there's a lot of code reuse involved
+
 void print_state (size_t iter, gsl_multiroot_fsolver* s)
 {
     printf("iter = %3lu x = % .3f % .3f f(x) = % .3e % .3e\n",

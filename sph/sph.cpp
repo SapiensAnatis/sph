@@ -7,7 +7,7 @@
 #include <cstdio>
 #include <iostream>
 
-#define SETUP_ONLY // Don't start the evolution
+// #define SETUP_ONLY // Don't start the evolution
 
 #include "sph.hpp"
 

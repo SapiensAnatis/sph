@@ -209,12 +209,22 @@ void init_ghost_particles(Config &c, ParticleArrayPtr &p_arr_ptr) {
     std::vector<Particle> l_neighbours; 
     std::vector<Particle> r_neighbours;
 
+    #ifdef USE_VARIABLE_H
     // To know what particles are the neighbours now that we have variable smoothing length, we
     // first need to calculate the density of left and right, since that will set their smoothing
     // lengths.
     auto dc = DensityCalculator(c, p_arr_ptr);
     dc(left);
     dc(right);
+
+    double left_h = left.h;
+    double right_h = right.h;
+    #endif
+
+    #ifndef USE_VARIABLE_H
+    double left_h = CONSTANT_H;
+    double right_h = CONSTANT_H;
+    #endif
 
     for (int i = 0; i < c.n_part; i++) {
         Particle& p = p_arr_ptr[i];
@@ -228,9 +238,9 @@ void init_ghost_particles(Config &c, ParticleArrayPtr &p_arr_ptr) {
 
         // Creates copies of p, since the vector is of non-reference Particle. 2*smoothing length
         // as that is the limit of the kernel, so ensures that edge particles have full neighbours
-        if (l_dist < left.h * 2)
+        if (l_dist < left_h * 2)
             l_neighbours.push_back(p);
-        else if (r_dist < right.h * 2)
+        else if (r_dist < right_h * 2)
             r_neighbours.push_back(p);   
     }
 

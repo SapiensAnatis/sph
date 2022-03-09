@@ -16,6 +16,8 @@
 
 #pragma region DensityCalculator
 
+#ifdef USE_VARIABLE_H
+// Variable smoothing length implementation
 void DensityCalculator::operator()(Particle &p) {
     std::pair<double, double> root_result = rootfind_h(p, p_all, config);
 
@@ -44,6 +46,24 @@ void DensityCalculator::operator()(Particle &p) {
         p.density = new_density;
     }
 }
+#endif
+
+#ifndef USE_VARIABLE_H
+void DensityCalculator::operator()(Particle &p) {
+    double d_sum = 0;
+
+    for (int i = 0; i < config.n_part; i++) {
+        Particle p_j = p_all[i];
+        double q = std::abs(p.pos - p_j.pos) / CONSTANT_H;
+        double w = kernel(q);
+
+        d_sum += p.mass * (w / CONSTANT_H);
+    }
+
+    p.density = d_sum;
+}
+
+#endif
 
 #pragma endregion
 #pragma region AccelerationCalculator
@@ -58,6 +78,14 @@ void AccelerationCalculator::operator()(Particle &p_i) {
     double Pr_i = pressure_isothermal(p_i, c_s);
     p_i.pressure = Pr_i;
     double Pr_rho_i = Pr_i / std::pow(p_i.density, 2);
+    
+    #ifdef USE_VARIABLE_H
+    double h = p_i.h
+    #endif
+    
+    #ifndef USE_VARIABLE_H
+    double h = CONSTANT_H;
+    #endif
 
     double acc = 0;
 
@@ -74,7 +102,7 @@ void AccelerationCalculator::operator()(Particle &p_i) {
             // The unit vector is +-1, depending on the sign of the vector, because we are in 1D
             double r_ij_unit = (r_ij > 0) ? 1 : -1;
 
-            double q = std::abs(r_ij) / p_i.h;
+            double q = std::abs(r_ij) / h;
             double grad_W = dkernel_dq(q) * r_ij_unit; // Rosswog 2009 eq. 25
 
             double Pr_j;
@@ -85,7 +113,7 @@ void AccelerationCalculator::operator()(Particle &p_i) {
 
             double Pr_rho_j = Pr_j / std::pow(p_j.density, 2);
 
-            double visc_ij = artificial_viscosity(p_i, p_j, r_ij, p_i.h, c_s);
+            double visc_ij = artificial_viscosity(p_i, p_j, r_ij, h, c_s);
             double to_add = -p_j.mass * (Pr_rho_i + Pr_rho_j + visc_ij) * grad_W;
             acc += to_add;
         }
