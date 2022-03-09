@@ -9,22 +9,10 @@
 #ifndef calculators_hpp
 #define calculators_hpp
 
-#include "calculators.hpp"
-#include "setup.hpp"
+#include "basictypes.hpp"
 
 // Epsilon value -- when checking if a floating point is 0, check if it's less than this instead
 const double CALC_EPSILON = 1e-8;
-
-class Kernel {
-    public:
-        // W
-        static double kernel(double q);
-        // grad(W)
-        static double d_kernel(double q);
-        // h. Not much point in this until I get around to doing dynamic smoothing lengths
-        static double smoothing_length(const Config &c);
-};
-
 
 // Calculators adopt a visitor design pattern. This is so that they can be instantiated and store
 // certain information that would otherwise be needed for every function call e.g. particle array

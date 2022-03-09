@@ -1,9 +1,8 @@
 /* 
  * PHYM004 Project 2 / Jay Malhotra
  *
- * ConfigReader.hpp defines functions implemented in read_config.cpp. As you may have guessed, these relate
- * to reading the configuration file and setting up the program. It also defines a Config struct
- * with shared static properties.
+ * ConfigReader.hpp defines functions implemented in read_config.cpp. As you may have guessed, these
+ * relate to reading the configuration file and setting up the program.
  *
  * The configuration format is proprietary, and it does reinvent the wheel somewhat as there are
  * plenty of libraries out there that do this. That said, it is simple enough code that I prefer to
@@ -16,34 +15,15 @@
 #include <string>
 #include <fstream>
 #include <map>
-#include <memory>
-#include <boost/smart_ptr/make_shared.hpp>
 
-#include "particle.hpp"
+#include "basictypes.hpp"
 
 // propertyname, value map read in from file
 typedef std::map<std::string, std::string> ConfigMap;
-// Particle array
-typedef boost::shared_ptr<Particle []> ParticleArrayPtr;
-
-enum PressureCalc {
-    Isothermal,
-    Adiabatic
-};
 
 // Actual configuration values. When reading the config, the program initializes a ConfigReader,
 // which is composed of a Config that it initializes the values of. The program can then grab the
 // Config from its ConfigReader, and avoid passing around the complete ConfigReader class.
-struct Config {
-    int n_part;
-    int n_ghost; // Not set from ConfigReader
-    double mass;
-    PressureCalc pressure_calc;
-    double limit;
-    double v_0;
-    double smoothing_length;
-    double t_i;
-};
 
 // Config class, used to store configuration properties. Has a constructor that takes in the
 // ConfigMap and performs datatype conversion.

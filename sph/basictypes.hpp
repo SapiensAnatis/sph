@@ -1,11 +1,35 @@
 /* 
  * PHYM004 Project 2 / Jay Malhotra
  *
- * particle.hpp defines the basic particle unit. These are set up in an array according to n_part.
+ * basictypes.hpp defines two structures that are used by almost every other file: Particle, Config,
+ * and also ParticleArrayPtr
  */
 
 #ifndef particle_hpp // Include guard
 #define particle_hpp
+
+#include <memory>
+#include <boost/smart_ptr/make_shared.hpp>
+
+// ===== CONFIG =====
+
+enum PressureCalc {
+    Isothermal,
+    Adiabatic
+};
+
+struct Config {
+    int n_part;
+    int n_ghost; // Not set from ConfigReader
+    double mass;
+    PressureCalc pressure_calc;
+    double limit;
+    double v_0;
+    double smoothing_length;
+    double t_i;
+};
+
+// ===== PARTICLES ===== 
 
 enum ParticleType {
     Alive,
@@ -78,5 +102,8 @@ struct Particle {
         return (id != p.id);
     }
 };
+
+// Particle array
+typedef boost::shared_ptr<Particle []> ParticleArrayPtr;
 
 #endif

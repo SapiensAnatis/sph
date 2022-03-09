@@ -11,8 +11,8 @@
 #define sph_hpp
 
 #include <iostream>
+#include <fstream>
 
-#include "setup.hpp"
 #include "calculators.hpp"
 
 class SPHSimulation {

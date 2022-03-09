@@ -7,6 +7,8 @@
 #include <cstdio>
 #include <iostream>
 
+// #define SETUP_ONLY // Don't start the evolution
+
 #include "sph.hpp"
 
 void SPHSimulation::start(double end_time) {
@@ -35,11 +37,13 @@ void SPHSimulation::start(double end_time) {
     
     // probably due to rounding error!
     
+    #ifndef SETUP_ONLY
     while (current_time < (end_time - CALC_EPSILON)) {
         current_time += timestep;
         std::cout << "[INFO] Simulation time: " << current_time << " / " << end_time << std::endl;
         step_forward();
     }
+    #endif
 }
 
 void SPHSimulation::step_forward() {

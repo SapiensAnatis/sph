@@ -19,7 +19,7 @@
 #include <memory>
 
 #include "setup.hpp"
-#include "particle.hpp"
+#include "basictypes.hpp"
 #include "sph.hpp"
 
 
