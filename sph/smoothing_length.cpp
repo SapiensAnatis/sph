@@ -211,9 +211,17 @@ std::pair<double, double> rootfind_h(
     } while (status == GSL_CONTINUE && iter < H_MAX_ITER);
 
     #ifdef H_ERRORS
-    if (status != GSL_SUCCESS) {
+    if (status != GSL_SUCCESS && status != GSL_ENOPROG && status != GSL_ENOPROGJ) {
         std::cout << "[WARN] Smoothing length root-finding failed for particle id " << p.id << 
                      " with status '" << gsl_strerror(status) << "'" << std::endl;
+    }
+    #endif
+
+    #ifdef H_WARNINGS
+    if (status == GSL_ENOPROG || status == GSL_ENOPROGJ) {
+        std::cout << "[WARN] Smoothing length root-finding encountered an issue on particle id " 
+                  << p.id << ": '" << gsl_strerror(status) << "'" << std::endl;
+        
     }
     #endif
 

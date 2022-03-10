@@ -16,19 +16,6 @@
 #ifndef define_hpp // Include guard
 #define define_hpp
 
-// === smoothing_length.cpp ===
-
-// Maximum number of iterations for root-finding of smoothing length
-#define H_MAX_ITER 1000
-// Epsilon for root-finding of smoothing length -- used to decide when to declare success
-#define H_EPSILON 1e-4
-// Show individual root-finding steps
-// #define H_DEBUG
-// Show root-finding errors
-#define H_ERRORS
-// Use a derivative-based root-finding algorithm (HYBRIDSJ)
-#define USE_DERIVATIVE
-
 // === calculators.cpp ===
 
 // Epsilon value -- when checking if a floating point is 0, check if it's less than this instead
@@ -36,7 +23,25 @@ const double CALC_EPSILON =  1e-8;
 // Use variable smoothing length
 #define USE_VARIABLE_H
 // If not using variable smoothing length, constant value to use
-const double CONSTANT_H = 0.3;
+const double CONSTANT_H = 0.2;
+
+// === smoothing_length.cpp ===
+
+// Maximum number of iterations for root-finding of smoothing length
+#define H_MAX_ITER 1000
+// Epsilon for root-finding of smoothing length -- used to decide when to declare success
+#define H_EPSILON 1e-3
+// Show individual root-finding steps
+// #define H_DEBUG
+// Show root-finding errors
+#define H_ERRORS
+// Show root-finding warnings ('iteration not making progress' + 'Jacobian not improving solution')
+// These two are split from the above so that other errors can be shown while disabling these, as
+// they appear _a lot_ and can flood the console.
+// #define H_WARNINGS
+// Use a derivative-based root-finding algorithm (HYBRIDSJ)
+#define USE_DERIVATIVE
+
 
 // === setup.cpp ===
 // Use a uniform, evenly-spaced distribution of particles. If commented out, the distribution is
