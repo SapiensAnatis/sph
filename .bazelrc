@@ -1,1 +1,3 @@
-build --cxxopt='-std=c++20' --cxxopt='-Wno-unknown-pragmas' --cxxopt='-Wno-sign-compare' --linkopt='-lgsl -lgslcblas -lm'
+build -c dbg --cxxopt='-std=c++20' --cxxopt='-Og' --cxxopt='-Wno-unknown-pragmas' --cxxopt='-Wno-sign-compare' --linkopt='-lgsl -lgslcblas -lm'
+
+--cxxopt='-Ofast'

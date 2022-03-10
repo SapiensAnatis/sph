@@ -92,6 +92,9 @@ double calc_omega(const Particle &p, ParticleArrayPtr p_arr, Config c) {
         o_sum += p_j.mass * dw_dh;
     }
 
+    double dh_drho = -p.h / p.density;
+    o_sum *= dh_drho;
+
     return 1 - o_sum;
 }
 

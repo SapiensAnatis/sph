@@ -156,7 +156,6 @@ void init_particles(Config &c, ParticleArrayPtr &p_arr_ptr)
         p.pos = pos;
         p.vel = vel;
         p.mass = c.mass;
-        // std::cout << result[i].pos << " | " << result[i].vel << std::endl;
     }
 
     init_ghost_particles(c, p_arr_ptr);
@@ -198,7 +197,6 @@ void init_ghost_particles(Config &c, ParticleArrayPtr &p_arr_ptr) {
         }
     }
 
-
     Particle& left = p_arr_ptr[min_x_idx];
     Particle& right = p_arr_ptr[max_x_idx];
 
@@ -224,7 +222,7 @@ void init_ghost_particles(Config &c, ParticleArrayPtr &p_arr_ptr) {
     #endif
 
     for (int i = 0; i < c.n_part; i++) {
-        Particle& p = p_arr_ptr[i];
+        Particle p = p_arr_ptr[i];
 
         if (p == left || p == right)
             // Don't collect the particles themselves
@@ -268,12 +266,6 @@ void init_ghost_particles(Config &c, ParticleArrayPtr &p_arr_ptr) {
     Particle* new_ptr = new Particle[c.n_part + n_ghost];
     // Copy over old data
     std::copy(old_ptr, old_ptr + c.n_part, new_ptr);
-    // Note: there is an unintended side effect to this approach: particle ids will actually start
-    // at n_part rather than 0, due to all the particles being copied over above... This is because
-    // the assignment operator does not copy over particle id (thus ensuring it is always unique),
-    // and ids 0-n_part were already used in the initial allocation of the array. It shouldn't
-    // matter because the id is only used for comparison (p1 == p2 etc.), and there is no assumption
-    // that it starts at 0.
 
     // Reinitialize shared ptr
     p_arr_ptr.reset(new_ptr);
