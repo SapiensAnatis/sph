@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
     
     try {
         p_arr = boost::make_shared<Particle[]>(config.n_part);
-    } catch (std::bad_alloc) {
+    } catch (std::bad_alloc e) {
         std::cerr << "[ERROR] Failed to allocate memory for particle array!";
         std::cerr << "[ERROR] Exception details: " << e.what();
         exit(1);
