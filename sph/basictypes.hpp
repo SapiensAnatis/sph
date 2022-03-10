@@ -5,10 +5,11 @@
  * and also ParticleArrayPtr
  */
 
-#ifndef particle_hpp // Include guard
-#define particle_hpp
+#ifndef basictypes_hpp // Include guard
+#define basictypes_hpp
 
 #include <memory>
+#include <iostream>
 #include <boost/smart_ptr/make_shared.hpp>
 
 // ===== CONFIG =====
@@ -76,9 +77,7 @@ struct Particle {
     
     // Assignment operator
     Particle& operator =(Particle &p) {
-        // Don't copy id. This ensures that id is unique between particles. It does however result
-        // in the slightly odd issue with them not starting at 0 due to array reallocation, as
-        // described in setup.cpp
+        // Don't copy id. This ensures that id is unique between particles.
         mass = p.mass;
         pos = p.pos;
         vel = p.vel;
@@ -100,6 +99,12 @@ struct Particle {
     // Inequality operator
     bool operator !=(Particle p) {
         return (id != p.id);
+    }
+
+    // ostream operator -- enables 'printing' of particles
+    friend std::ostream& operator <<(std::ostream& os, const Particle& p) {
+        return os << "<Particle> id: " << p.id << " type: " << ParticleTypeNames[p.type] 
+                  << " pos: " << p.pos << " vel: " << p.vel;
     }
 };
 
