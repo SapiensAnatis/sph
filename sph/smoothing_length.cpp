@@ -98,7 +98,6 @@ double calc_omega(const Particle &p, ParticleArrayPtr p_arr, Config c) {
     return 1 - o_sum;
 }
 
-#ifdef USE_DERIVATIVE
 // Print the current state of the solver. Useful when wanting to see the step-by-step in case it
 // produces silly values. Only used if GSL_DEBUG is defined.
 void print_state (size_t iter, gsl_multiroot_fdfsolver* s)
@@ -249,88 +248,4 @@ std::pair<double, double> rootfind_h(
 
     return std::pair<double, double> {h, rho};
 }
-#endif
 
-#ifndef USE_DERIVATIVE
-// if we're not using derivatives, every mention of gsl_multiroot_fdfsolver has to be changed to
-// gsl_multiroot_fdfsolver etc. so there's a lot of code reuse involved
-
-void print_state (size_t iter, gsl_multiroot_fsolver* s)
-{
-    printf("iter = %3lu x = % .3f % .3f f(x) = % .3e % .3e\n",
-            iter,
-            gsl_vector_get (s->x, 0),
-            gsl_vector_get (s->x, 1),
-            gsl_vector_get (s->f, 0),
-            gsl_vector_get (s->f, 1));
-}
-
-std::pair<double, double> rootfind_h(
-    const Particle &p, 
-    const ParticleArrayPtr p_arr,
-    const Config c
-) {
-    const gsl_multiroot_fsolver_type *T;
-    gsl_multiroot_fsolver *s;
-
-    int status;
-    size_t iter = 0;
-
-    struct params param = {
-        &p,
-        p_arr.get(),
-        c.n_part,
-        c.smoothing_length
-    };
-
-    gsl_multiroot_function f = {&smoothing_f, 2, &param};
-
-    // Initial guesses for {smoothing length, density}
-    // Mean particle spacing * neighbour parameter
-    double h_guess = ((c.limit * 2) / c.n_part) * c.smoothing_length; 
-    // Number density * mass
-    double rho_guess = (c.n_part / (c.limit * 2)) * c.mass;
-
-    double x_init[2] = {0.1, 1};
-    gsl_vector* x = gsl_vector_alloc(2);
-    gsl_vector_set(x, 0, x_init[0]);
-    gsl_vector_set(x, 1, x_init[1]);
-
-    T = gsl_multiroot_fsolver_dnewton;
-    s = gsl_multiroot_fsolver_alloc(T, 2);
-    gsl_multiroot_fsolver_set(s, &f, x);
-
-    #ifdef GSL_DEBUG 
-    print_state(iter, s);
-    #endif
-
-    do {
-        iter++;
-        status = gsl_multiroot_fsolver_iterate(s);
-
-        if (status)
-            break;
-
-        #ifdef GSL_DEBUG 
-        print_state(iter, s); 
-        #endif
-        
-        status = gsl_multiroot_test_residual(s->f, H_EPSILON);
-    } while (status == GSL_CONTINUE && iter < H_MAX_ITER);
-
-    #ifdef H_DEBUG
-    if (status != GSL_SUCCESS) {
-        std::cout << "[WARN] Smoothing length root-finding failed for particle id " << p.id << 
-                     " with status '" << gsl_strerror(status) << "'" << std::endl;
-    }
-    #endif
-
-    double h = gsl_vector_get(s->x, 0);
-    double rho = gsl_vector_get(s->x, 1);
-
-    gsl_multiroot_fsolver_free(s);
-    gsl_vector_free(x);
-
-    return std::pair<double, double> {h, rho};
-}
-#endif

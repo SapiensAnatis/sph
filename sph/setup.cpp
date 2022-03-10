@@ -100,10 +100,15 @@ void ConfigReader::set_property(int &prop, ConfigMap &config_map, const std::str
     try {
         prop = std::stoi(prop_value);
     } catch (const std::invalid_argument &ia) {
-        std::cerr << "[ERROR] Failed to parse value '" << ia.what() << "' for property '" <<
-        prop_name << "'." << std::endl;
+        std::cerr << "[ERROR] Failed to parse value '" << prop_value << "' for property '"
+                  << prop_name << "' of type 'int'." << std::endl;
         exit(1);
-    } 
+    } catch (const std::out_of_range &e) {
+        std::cerr << "[ERROR] The value '" << prop_value << "' is out of range for property '"
+                  << prop_name << "' of type 'int'" << std::endl;
+        exit(1);
+
+    }
 }
 
 void ConfigReader::set_property(double &prop, ConfigMap &config_map, const std::string &prop_name) {
@@ -111,8 +116,8 @@ void ConfigReader::set_property(double &prop, ConfigMap &config_map, const std::
     try {
         prop = std::stod(prop_value);
     } catch (const std::invalid_argument &ia) {
-        std::cerr << "[ERROR] Failed to parse value '" << ia.what() << "' for property '" <<
-        prop_name << "'." << std::endl;
+        std::cerr << "[ERROR] Failed to parse value '" << prop_value << "' for property '"
+                  << prop_name << "' of type 'double'." << std::endl;
         exit(1);
     }
 }

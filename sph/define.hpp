@@ -39,8 +39,6 @@ const double CONSTANT_H = 0.2;
 // These two are split from the above so that other errors can be shown while disabling these, as
 // they appear *a lot* and can flood the console.
 #define H_WARNINGS
-// Use a derivative-based root-finding algorithm (HYBRIDSJ)
-#define USE_DERIVATIVE
 
 
 // === setup.cpp ===
