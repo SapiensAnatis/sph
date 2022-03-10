@@ -14,17 +14,6 @@
 
 #include "basictypes.hpp"
 
-// Maximum number of iterations for root-finding of smoothing length
-#define H_MAX_ITER 1000
-// Epsilon for root-finding of smoothing length -- used to decide when to declare success
-#define H_EPSILON 1e-4
-// Show root-finding steps
-// #define H_DEBUG
-// Show root-finding errors
-#define H_ERRORS
-// Use a derivative-based root-finding algorithm (HYBRIDSJ)
-#define USE_DERIVATIVE
-
 // Calculate 'omega' parameter from Rosswog 2009 eq. 111
 // Incorporation of this quantity into the momentum equation is required when using variable
 // smoothing lengths.

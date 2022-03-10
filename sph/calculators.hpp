@@ -11,13 +11,6 @@
 
 #include "basictypes.hpp"
 
-// Epsilon value -- when checking if a floating point is 0, check if it's less than this instead
-const double CALC_EPSILON = 1e-8;
-// Use variable smoothing length
-#define USE_VARIABLE_H
-// If not using variable smoothing length, constant value to use
-const double CONSTANT_H = 0.2;
-
 // Calculators adopt a visitor design pattern. This is so that they can be instantiated and store
 // certain information that would otherwise be needed for every function call e.g. particle array
 // pointer, Config data, etc. 

@@ -7,9 +7,8 @@
 #include <cstdio>
 #include <iostream>
 
-// #define SETUP_ONLY // Don't start the evolution
-
 #include "sph.hpp"
+#include "define.hpp"
 
 void SPHSimulation::start(double end_time) {
     // First calculate density and acceleration for all particles at t = 0

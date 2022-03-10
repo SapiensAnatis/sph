@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "smoothing_length.hpp"
+#include "define.hpp"
 #include "kernel.hpp"
 
 // The code for root-finding the variable smoothing length is largely based on the Rosenbrock

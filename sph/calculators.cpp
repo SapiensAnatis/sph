@@ -10,6 +10,7 @@
 #include <exception>
 #include <iostream>
 
+#include "define.hpp"
 #include "calculators.hpp"
 #include "kernel.hpp"
 #include "smoothing_length.hpp"

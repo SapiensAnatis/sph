@@ -5,16 +5,13 @@
  * constructor.
  */
 
-// If this isn't defined, particles will be distributed randomly as per the assignment brief.
-// But Matthew's thesis tells me to distribute them uniformly, which will happen if this is defined.
-#define UNIFORM_DIST
-
 #include <iostream>
 #include <random>
 #include <memory>
 #include <algorithm>
 #include <string.h>
 
+#include "define.hpp"
 #include "setup.hpp"
 #include "calculators.hpp"
 
