@@ -54,17 +54,21 @@ int main(int argc, char* argv[]) {
     // array would be mOrE eFfIcIeNt and now I can't be bothered to change all the references to
     // this type
     ParticleArrayPtr p_arr;
-    
+
     try {
         p_arr = boost::make_shared<Particle[]>(config.n_part);
-    } catch (std::bad_alloc e) {
-        std::cerr << "[ERROR] Failed to allocate memory for particle array!";
-        std::cerr << "[ERROR] Exception details: " << e.what();
+    } catch (std::bad_alloc &e) {
+        size_t bytes = config.n_part * sizeof(Particle);
+
+        std::cerr << "[ERROR] Failed to allocate memory for particle array!" << std::endl;
+        std::cerr << "[ERROR] Attempted to allocate " << bytes << " bytes for " << config.n_part
+                  << " particles" << std::endl;
         exit(1);
     }
 
     // Initialize position, velocity, and mass values. p_arr will be reallocated to fit the ghost
     // particles in.
+    std::cout << "[INFO] Initializing particle array..." << std::endl;
     init_particles(config, p_arr);
 
     // Create simulation object

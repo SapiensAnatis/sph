@@ -264,25 +264,27 @@ void init_ghost_particles(Config &c, ParticleArrayPtr &p_arr_ptr) {
     // It's a bit easier to work with raw pointers when copying with data, so we switch back to
     // shared pointers later.
     int n_ghost = l_neighbours.size() + r_neighbours.size();
+    c.n_ghost = n_ghost;
 
     Particle* old_ptr = p_arr_ptr.get();
     Particle* new_ptr;
 
     try {
         new_ptr = new Particle[c.n_part + n_ghost];
-    } catch (std::bad_alloc e) {
+    } catch (std::bad_alloc &e) {
+        size_t bytes = (c.n_part + n_ghost) * sizeof(Particle);
         std::cerr << "[ERROR] Failed to reallocate array for creation of ghost particles!" << std::endl;
-        std::cerr << "[ERROR] Exception details: " << e.what();
+        std::cerr << "[ERROR] Attempted to allocate " << bytes << " bytes for " << c.n_part
+                  << " particles and " << n_ghost << " ghost particles" << std::endl;
         exit(1);
     }
 
     // Copy over old data
     std::copy(old_ptr, old_ptr + c.n_part, new_ptr);
 
-    // Reinitialize shared ptr
+    // Reinitialize shared ptr. This will free old_ptr as the smart pointer detects it is no longer
+    // in use.
     p_arr_ptr.reset(new_ptr);
-    std::free(old_ptr);
-
     // Add to end of array
     std::copy(l_neighbours.begin(), l_neighbours.end(), p_arr_ptr.get() + c.n_part);
 
@@ -293,8 +295,6 @@ void init_ghost_particles(Config &c, ParticleArrayPtr &p_arr_ptr) {
     std::copy(r_neighbours.begin(), r_neighbours.end(), p_arr_ptr.get() + c.n_part);
 
     c.n_part += r_neighbours.size();
-    // Ghost counter is diagnostic/curiosity info more than anything else.
-    c.n_ghost = n_ghost;
 }
 
 #pragma endregion
