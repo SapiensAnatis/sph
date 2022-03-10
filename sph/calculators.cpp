@@ -68,6 +68,65 @@ void DensityCalculator::operator()(Particle &p) {
 #pragma endregion
 #pragma region AccelerationCalculator
 
+#ifdef USE_VARIABLE_H
+// Version of acceleration calculation that accounts for variable smoothing length, by adding in
+// 'omega terms' (Rosswog eqns. 118-121)
+void AccelerationCalculator::operator()(Particle &p_i) {
+    if (p_i.type == Ghost)
+        return;
+
+    // I have tried to use variable names that correspond to how this equation is typeset in the
+    // Bate thesis. Pr = pressure, p = particle, rho = density, W = weight function
+    double c_s = sound_speed();
+    double Pr_i = pressure_isothermal(p_i, c_s);
+    p_i.pressure = Pr_i;
+    double Pr_rho_i = Pr_i / std::pow(p_i.density, 2) / calc_omega(p_i, p_all, config);
+
+    double acc = 0;
+
+    // Density = 0 will cause div by zero and screw everything up. Should never really happen
+    ensure_nonzero_density(p_i);
+
+    for (int i = 0; i < config.n_part; i++) {
+        Particle &p_j = p_all[i];
+        ensure_nonzero_density(p_j);
+
+        if (p_j != p_i) {
+            double r_ij = p_i.pos - p_j.pos;
+
+            // The unit vector is +-1, depending on the sign of the vector, because we are in 1D
+            double r_ij_unit = (r_ij > 0) ? 1 : -1;
+
+            double q_i = std::abs(r_ij) / p_i.h;
+            double grad_W_i = dkernel_dq(q_i) * r_ij_unit; // Rosswog 2009 eq. 25
+
+            // Different smoothing length of particle b. Gradient still w.r.t. a
+            double q_j = std::abs(r_ij) / p_j.h;
+            double grad_W_j = dkernel_dq(q_j) * r_ij_unit;
+
+            double Pr_j;
+            if (config.pressure_calc == Isothermal)
+                Pr_j = pressure_isothermal(p_j, c_s);
+            else
+                throw std::invalid_argument("Adiabatic EoS not yet implemented!");
+
+            double Pr_rho_j = Pr_j / std::pow(p_j.density, 2) / calc_omega(p_j, p_all, config);
+
+            // TODO: Figure out how artificial viscosity fits into this equation!
+            double visc_ij = artificial_viscosity(p_i, p_j, r_ij, p_i.h, c_s);
+
+            // Rosswog 2009 eqn 120
+            double to_add = -p_j.mass * ((grad_W_i * (Pr_rho_i + visc_ij)) + (grad_W_j * Pr_rho_j));
+            acc += to_add;
+        }
+    }
+
+    p_i.acc = acc;
+}
+#endif
+
+#ifndef USE_VARIABLE_H
+// Constant H version of above
 void AccelerationCalculator::operator()(Particle &p_i) {
     if (p_i.type == Ghost)
         return;
@@ -78,16 +137,9 @@ void AccelerationCalculator::operator()(Particle &p_i) {
     double Pr_i = pressure_isothermal(p_i, c_s);
     p_i.pressure = Pr_i;
     double Pr_rho_i = Pr_i / std::pow(p_i.density, 2);
-    
-    #ifdef USE_VARIABLE_H
-    double h = p_i.h
-    #endif
-    
-    #ifndef USE_VARIABLE_H
-    double h = CONSTANT_H;
-    #endif
 
     double acc = 0;
+    double h = CONSTANT_H;
 
     // Density = 0 will cause div by zero and screw everything up. Should never really happen
     ensure_nonzero_density(p_i);
@@ -121,6 +173,7 @@ void AccelerationCalculator::operator()(Particle &p_i) {
 
     p_i.acc = acc;
 }
+#endif
 
 double AccelerationCalculator::pressure_isothermal(const Particle &p, double c_s) {
     return std::pow(c_s, 2) * p.density;

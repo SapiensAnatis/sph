@@ -14,7 +14,7 @@
 // Epsilon value -- when checking if a floating point is 0, check if it's less than this instead
 const double CALC_EPSILON = 1e-8;
 // Use variable smoothing length
-// #define USE_VARIABLE_H
+#define USE_VARIABLE_H
 // If not using variable smoothing length, constant value to use
 const double CONSTANT_H = 0.2;
 

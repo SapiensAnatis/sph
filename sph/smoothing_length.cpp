@@ -19,7 +19,7 @@ struct params
 };
 
 // Summation density calculation
-double calc_density(const Particle &p, const double h, const Particle* p_arr, const int n_part) {
+double calc_density(const Particle &p, double h, const Particle* p_arr, int n_part) {
     double d_sum = 0;
     for (int i = 0; i < n_part; i++) {
         Particle p_j = *(p_arr + i);
@@ -59,24 +59,42 @@ int smoothing_f(const gsl_vector* x, void* params, gsl_vector* f) {
     return GSL_SUCCESS;
 }
 
-#ifdef USE_DERIVATIVE
+// Calculate the derivative of the weighting function with respect to h
+double calc_dw_dh(const Particle &p_1, const Particle &p_2, double h) {
+    double r_ij = std::abs(p_1.pos - p_2.pos);
+    double q = r_ij / h;
+    double dq_dh = -r_ij / std::pow(h, 2);
+    double dw_dh = dkernel_dq(q) * dq_dh;
+
+    return dw_dh;
+}
+
 // Calculate the derivative of the summation with respect to h
-double calc_density_dh(const Particle &p, const double h, const Particle* p_arr, const int n_part) {
+double calc_density_dh(const Particle &p, double h, const Particle* p_arr, int n_part) {
     double d_sum = 0;
     for (int i = 0; i < n_part; i++) {
         Particle p_j = *(p_arr + i);
-        double q = std::abs(p.pos - p_j.pos) / h;
-        double dq_dh = -std::abs(p.pos - p_j.pos) / std::pow(h, 2);
-
-        double dw_dh = dkernel_dq(q) * dq_dh;
-        d_sum -= p.mass * dw_dh / std::pow(h, 2);
+        double dw_dh = calc_dw_dh(p, p_j, h);
+        d_sum -= p_j.mass * dw_dh / std::pow(h, 2);
     }
 
     return d_sum;
 }
 
+// Interface is a bit different since this isn't called in GSL-based methods but rather in a context
+// with the shared pointer and Config objects etc
+double calc_omega(const Particle &p, ParticleArrayPtr p_arr, Config c) {
+    double o_sum = 0;
+    for (int i = 0; i < c.n_part; i++) {
+        Particle p_j = p_arr[i];
+        double dw_dh = calc_dw_dh(p, p_j, p.h);
+        o_sum += p_j.mass * dw_dh;
+    }
 
+    return 1 - o_sum;
+}
 
+#ifdef USE_DERIVATIVE
 // Print the current state of the solver. Useful when wanting to see the step-by-step in case it
 // produces silly values. Only used if GSL_DEBUG is defined.
 void print_state (size_t iter, gsl_multiroot_fdfsolver* s)
@@ -161,6 +179,8 @@ std::pair<double, double> rootfind_h(
     double h_guess = ((c.limit * 2) / c.n_part) * c.smoothing_length; 
     // Number density * mass
     double rho_guess = (c.n_part / (c.limit * 2)) * c.mass;
+
+    // std::cout << "Initial guesses: h " << h_guess << " rho " << rho_guess << std::endl;
 
     double x_init[2] = {h_guess, rho_guess};
     gsl_vector* x = gsl_vector_alloc(2);

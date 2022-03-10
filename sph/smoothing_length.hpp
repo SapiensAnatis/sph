@@ -25,6 +25,10 @@
 // Use a derivative-based root-finding algorithm (HYBRIDSJ)
 #define USE_DERIVATIVE
 
+// Calculate 'omega' parameter from Rosswog 2009 eq. 111
+// Incorporation of this quantity into the momentum equation is required when using variable
+// smoothing lengths.
+double calc_omega(const Particle &p, ParticleArrayPtr p_arr, Config c);
 
 // Given a particle, the particle array, and initial guesses for smoothing length and density, use
 // the GSL rootfinding capabilities to find a solution to the system of equations and return a pair
