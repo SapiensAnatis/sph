@@ -260,15 +260,28 @@ void init_ghost_particles(Config &c, ParticleArrayPtr &p_arr_ptr) {
 
     // Before adding to array, dynamically reallocate. The array is already full with n_part, but we
     // can now grow it because we know how many ghost particles are about to be added
+
+    // It's a bit easier to work with raw pointers when copying with data, so we switch back to
+    // shared pointers later.
     int n_ghost = l_neighbours.size() + r_neighbours.size();
 
     Particle* old_ptr = p_arr_ptr.get();
-    Particle* new_ptr = new Particle[c.n_part + n_ghost];
+    Particle* new_ptr;
+
+    try {
+        new_ptr = new Particle[c.n_part + n_ghost];
+    } catch (std::bad_alloc e) {
+        std::cerr << "[ERROR] Failed to reallocate array for creation of ghost particles!" << std::endl;
+        std::cerr << "[ERROR] Exception details: " << e.what();
+        exit(1);
+    }
+
     // Copy over old data
     std::copy(old_ptr, old_ptr + c.n_part, new_ptr);
 
     // Reinitialize shared ptr
     p_arr_ptr.reset(new_ptr);
+    std::free(old_ptr);
 
     // Add to end of array
     std::copy(l_neighbours.begin(), l_neighbours.end(), p_arr_ptr.get() + c.n_part);

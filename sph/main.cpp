@@ -53,7 +53,15 @@ int main(int argc, char* argv[]) {
     // Allocate memory for particle array. Using a vector would've been way easier but I thought an
     // array would be mOrE eFfIcIeNt and now I can't be bothered to change all the references to
     // this type
-    ParticleArrayPtr p_arr = boost::make_shared<Particle[]>(config.n_part);
+    ParticleArrayPtr p_arr;
+    
+    try {
+        p_arr = boost::make_shared<Particle[]>(config.n_part);
+    } catch (std::bad_alloc) {
+        std::cerr << "[ERROR] Failed to allocate memory for particle array!";
+        std::cerr << "[ERROR] Exception details: " << e.what();
+        exit(1);
+    }
 
     // Initialize position, velocity, and mass values. p_arr will be reallocated to fit the ghost
     // particles in.

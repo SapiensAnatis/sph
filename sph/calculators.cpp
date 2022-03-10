@@ -117,7 +117,7 @@ void AccelerationCalculator::operator()(Particle &p_i) {
             double visc_ij = artificial_viscosity(p_i, p_j, r_ij, p_i.h, c_s);
 
             // Rosswog 2009 eqn 120
-            double to_add = -p_j.mass * ((grad_W_i * (Pr_rho_i + visc_ij)) + (grad_W_j * Pr_rho_j));
+            double to_add = -p_j.mass * ((grad_W_i * Pr_rho_i) + (grad_W_i * visc_ij) + (grad_W_j * Pr_rho_j));
             acc += to_add;
         }
     }

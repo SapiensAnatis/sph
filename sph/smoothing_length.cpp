@@ -186,7 +186,20 @@ std::pair<double, double> rootfind_h(
 
     // std::cout << "Initial guesses: h " << h_guess << " rho " << rho_guess << std::endl;
 
-    double x_init[2] = {h_guess, rho_guess};
+    /*
+     * 'Reasonable' h guess is multiplied by 3 as I'd rather - in the event that the solver stalls -
+     * that smoothing length is too large vs. too small.
+     * 
+     * Consequence of it being too small: very few neighbours, possibly even 0 in which case 'the
+     * simulation breaks down' according to Bate
+     * 
+     * Consequence of it being too large: wasted CPU time and low resolution?
+     * 
+     * Too large seems safer! Also, anecdotally, this seems to make the solver throw up less 'not
+     * progressing' errors
+     */
+    
+    double x_init[2] = {h_guess*3, rho_guess};
     gsl_vector* x = gsl_vector_alloc(2);
     gsl_vector_set(x, 0, x_init[0]);
     gsl_vector_set(x, 1, x_init[1]);

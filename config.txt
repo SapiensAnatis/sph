@@ -6,14 +6,14 @@
 n_part 101
 
 # The mass to use for all of the particles, in kg
-mass 0.02
+mass 0.04
 
 # Pressure calculation mode. 0: Isothermal, 1: Adiabatic
 pressure_calc 0
 
 # Boundary size -- as measured from either side of the origin (so the total width of the space will 
 # be twice this value)
-limit 1
+limit 2
 
 # The initial velocity to give to particles when setting up the calculation
 v_0 1
