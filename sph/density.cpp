@@ -24,7 +24,7 @@ void DensityCalculator::operator()(Particle &p, const ParticleVector &p_vec) {
 
 // This returns a constant for now, but may later use variable smoothing lengths
 double DensityCalculator::smoothing_length() {
-    return this->config.d_unit;
+    return 0.3* this->config.d_unit;
 }
 
 double DensityCalculator::kernel(double q) {
