@@ -98,9 +98,14 @@ For this test, a random distribution of particles with $m = 1$ are used to test 
 \end{figure}
 
 \subsection{Relation between setup runtime and number of particles}
-This test also features a random distribution of particles and a constant smoothing length ($h = 0.3$). Figure \ref{fig:density_time} is a plot showing the results of this test. 
+This test also features a random distribution of particles and a constant smoothing length ($h = 1$). Figure \ref{fig:density_time} is a plot showing the results of this test. 
 
-\begin
+\begin{figure}
+    \centering
+    \includegraphics[width=1.1\textwidth]{../plots/density_time.pdf}
+    \caption{Setup runtime (i.e. particle array initialization and initial density calculation) as a function of particle count, ranging from 1 to 20,000.}
+    \label{fig:density_time}
+\end{figure}
 
 \printbibliography
 

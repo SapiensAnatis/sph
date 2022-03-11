@@ -9,17 +9,22 @@ bazel-*
 run.sh
 test.sh
 
-# Temperary files
+# Temporary files
 *.sh~
 
 # Data
 data/*
-*.png
 densities.txt
 dumps/*
 plots/spare_code.ipynb
 
+# Plots
+
+*.png
+*.svg
+
 # Report temp files (whitelist)
 report/*
+*.pdf
+*.pdf_tex
 !report/*.pdf
-!report/*.tex
