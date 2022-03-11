@@ -4,16 +4,24 @@ resources/*
 # IDE stuff
 .vscode/*
 
-# Temporary files
-*.sh~
-
 # Build artefacts
 bazel-*
 run.sh
 test.sh
 
-# Profiling
-data/*
+# Temperary files
+*.sh~
 
-# Plots
+# Data
+data/*
 *.png
+*.svg
+densities.txt
+dumps/*
+plots/spare_code.ipynb
+
+# Report temp files (whitelist)
+report/*
+*.pdf
+*.pdf_tex
+!report/*.tex

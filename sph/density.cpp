@@ -12,12 +12,11 @@ void DensityCalculator::operator()(Particle &p, const ParticleVector &p_vec) {
     double density = 0;
 
     for (Particle p_i : p_vec) {
-        if (p_i != p) { // i != j
-            double q = std::abs(p_i.pos - p.pos) / h;
-            double w = this->kernel(q);
-            
-            density += p_i.mass * (w / h);
-        }
+        double q = std::abs(p_i.pos - p.pos) / h;
+        double w = this->kernel(q);
+        
+        density += p_i.mass * (w / h);
+        
     }
 
     p.density = density;
