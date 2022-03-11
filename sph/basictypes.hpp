@@ -10,7 +10,7 @@
 
 #include <memory>
 #include <iostream>
-#include <boost/smart_ptr/make_shared.hpp>
+#include <boost/shared_ptr.hpp>
 
 // ===== CONFIG =====
 

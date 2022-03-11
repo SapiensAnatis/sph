@@ -18,7 +18,7 @@ limit 2
 # The initial velocity to give to particles when setting up the calculation
 v_0 1
 
-# Smoothing length in terms of mean particle spacing (a.k.a. eta parameter, see Price 2010 eq. 10)
+# Smoothing length in terms of mean particle spacing (a.k.a. eta parameter, see Price 2012 eq. 10)
 # The number of neighbours for each particle is approximately four times this value
 smoothing_length 2
 

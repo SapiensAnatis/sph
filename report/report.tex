@@ -1,0 +1,107 @@
+\documentclass[onecolumn,12pt]{article}
+
+\usepackage{graphicx}
+\usepackage{siunitx}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{subfig}
+\usepackage[
+    sorting=none,
+    backend=biber,
+    style=authoryear,
+    natbib
+]{biblatex} 
+\addbibresource{report.bib}
+
+
+\title{PHYM004 Project 2: Smoothed Particle Hydrodynamics}
+\author{Jay Malhotra}
+\date{\today}
+ 
+\begin{document}
+
+\newcommand{\dist}[2]{\ensuremath{|\vec{#1} - \vec{#2}|}}
+\maketitle
+
+\section{Introduction}
+Smoothed-particle hydrodynamics (SPH) is an approach to the numerical simulation of fluid dynamics. Notable characteristics of this method include the fact that it is mesh-free, and that it is derived using Lagrangian mechanics, which gives it good conservation properties.
+
+This report presents a one-dimensional SPH code which is capable of reproducing some basic analytical results. It features artificial viscosity calculation and a method for varying the smoothing length on a per-particle basis using a root-finding algorithm.
+
+\subsection{Equations of motion}
+\citet{price} provides a full first-principles derivation of SPH, but the key ideas are explained here.
+
+SPH starts with the density estimate. This is a foundational quantity, and is used in almost every subsequent equation. It is calculated at any given point as the sum over all particles, which provide a contribution weighted by their distance:
+
+\begin{equation}
+    \rho(\vec{r}_i) = \sum\limits_j m_j W(|\vec{r}_i - \vec{r}_j|, h).
+\end{equation}
+
+Here, $\vec{r}_i$ is a position (typically, but not necessarily, that of a particle) and $\vec{r}_j$ is the position of particle $j$, and $m_j$ the mass of particle $j$. $W(\vec{r})$ is a function known as the weighting function, and is a function of a distance (here the particle separation) and a smoothing length $h$. The weighting function is related to a kernel $w(q)$ by $W(\dist{r_i}{r_j}) = \frac{1}{h}w(\dist{r_i}{r_j}/h)$.
+
+The kernel is an important part of SPH. Most codes use an approximation to the Gaussian function which is truncated at a certain multiple of $h$. The value at which the spline is truncated is known as the `compact support radius', and it increases computational efficiency by ignoring the negligible influence of extremely distant particles. This code uses the Schoenberg $M_4$ cubic spline kernel:
+
+\begin{gather}
+    w(q) = \frac{2}{3}
+    \begin{cases}
+        \frac{1}{4}(2-q)^3 - (1-q)^3, &0 \leq q < 1\\
+        \frac{1}{4}(2-q)^3, &1 \leq q < 2\\
+        0. &q \geq 2
+    \end{cases}
+\end{gather}
+
+By applying Lagrangian mechanics and incorporating the above density estimate, it can be shown that the acceleration is given by:
+
+\begin{equation}
+    \frac{d \vec{v}_i}{dt} = -\sum\limits_j m_j \left(\frac{P_i}{\rho_i^2} + \frac{P_j}{\rho_j^2} \right)\nabla_a W_{ij}(h),
+\end{equation}
+
+where $W_{ij}(h)$ is shorthand for $W(\dist{r_i}{r_j}, h)$. This equation is modified to add artificial viscosity and account for variable smoothing lengths as follows:
+
+\begin{equation}
+    \frac{d \vec{v}_i}{dt} = -\sum\limits_j m_j \left(\frac{P_i \Pi_{{ij}}}{\Omega_i\rho_i^2}\frac{\partial W_{ij}(h_i)}{\partial \vec{r_i}} + \frac{P_j}{\Omega_j\rho_j^2}\frac{\partial W_{ij}(h_j)}{\partial \vec{r_i}} \right).
+\end{equation}
+
+Here, $\Omega_i$ is an expression defined by 
+
+\begin{equation}
+\Omega_i \equiv 1 - \frac{\partial h_i}{\partial \rho_i}\sum\limits_j m_j \frac{\partial W_{ij}(h_i)}{\partial h_i},
+\end{equation}
+
+and $\Pi_{ij}$ is an artificial viscosity parameter, the definition of which is explained in \citet{bate}.
+
+\subsection{Variable smoothing length} \label{sec:h}
+It is desirable to modify the smoothing length $h$ on a per-particle basis, so that regions of higher density have a lower smoothing length (and thus higher resolution) and to keep the number of neighbours for each particle approximately constant. This is achieved by solving the following system of equations for $h$ and $\rho$:
+
+\begin{align}
+    &h_i(\rho_i) - \frac{\eta m_i}{\rho_i} = 0, \label{eq:h_1}\\
+    &\rho_i(h_i) - \sum\limits_j m_j W(|\vec{r}_i - \vec{r}_j|, h) = 0. \label{eq:h_2}
+\end{align}
+
+$\eta$ in Equation \ref{eq:h_1} is a parameter that acts as a coefficient of the mean particle spacing $\frac{m}{\rho}$. It is related to the number of neighbours by $N_\textrm{neigh} \approx 4\eta$. The choice of $\eta$ is arbitrary. For the tests described in this report, $\eta = 2$ is used to maintain approximately 8 neighbours for each particle.
+
+
+The code solves the system of Equation \ref{eq:h_1} and Equation \ref{eq:h_2} by using a multidimensional root-finding subroutine from the GNU Scientific Library (GSL), with an analytically-derived Jacobian.
+
+\section{Results}
+
+\subsection{Behaviour of density estimate along the axis}
+For this test, a random distribution of particles with $m = 1$ are used to test the effect of smoothing length on the density profile of the system. The variable smoothing length, as described in Section \ref{sec:h} is disabled for this test. Figure \ref{fig:density_h} is a plot showing different $\rho{\vec{r}, h}$ vs. $x$ curves at different values of $h$. It shows that small values of $h$ are very sensitive to the random nature of the distribution of particles, whilst large values of $h$ effectively cancel out the random nature of the distribution and produce a parabola.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{../plots/density_h.png}
+    \caption{Plot showing density profiles at various values of $h$, for a random distribution of 1000 particles. Note that for $h = 1$, the compact support radius of the kernel at any given particle includes every single other particle in the distribution.}
+    \label{fig:density_h}
+\end{figure}
+
+\subsection{Relation between setup runtime and number of particles}
+This test also features a random distribution of particles and a constant smoothing length ($h = 0.3$). Figure \ref{fig:density_time} is a plot showing the results of this test. 
+
+\begin
+
+\printbibliography
+
+\end{document}

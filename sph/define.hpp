@@ -31,7 +31,8 @@ const double CONSTANT_H = 0.2;
 #define H_MAX_ITER 1000
 // Epsilon for root-finding of smoothing length -- used to decide when to declare success
 #define H_EPSILON 1e-4
-// Show individual root-finding steps
+// In the event of a root-finding error message, re-run the root-finding algorithm but this time
+// show the individual steps
 // #define H_DEBUG
 // Show root-finding errors
 #define H_ERRORS
@@ -42,11 +43,13 @@ const double CONSTANT_H = 0.2;
 
 
 // === setup.cpp ===
+
 // Use a uniform, evenly-spaced distribution of particles. If commented out, the distribution is
 // randomly generated
 #define UNIFORM_DIST
 
 // === sph.cpp ===
+
 // Don't start the evolution and only generate initial conditions. Useful when debugging setup or
 // root-finding.
 //#define SETUP_ONLY 

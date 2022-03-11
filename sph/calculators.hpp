@@ -32,12 +32,6 @@ class Calculator {
 
 };
 
-
-// Actual iterative density calculation (Equation 2.21 of Bate thesis)
-// The fact that it is outside of the class, and uses direct pointers/doesn't use p.h for smoothing
-// length is because it's used inside the GSL root-finding method (and also outside).
-double calc_density(const Particle &p, const double h, const Particle* p_arr, const int n_part);
-
 class DensityCalculator : public Calculator {
     public:
         // ctor -- just call base class

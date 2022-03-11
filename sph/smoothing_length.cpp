@@ -16,7 +16,7 @@ struct params
     const Particle* p; // Particle in question
     const Particle* p_arr; // Pointer to array of particles
     int n_part; // Length of above array
-    double eta; // Smoothing length parameter; see Price 2010 eq. 10
+    double eta; // Smoothing length parameter; see Price 2012 eq. 10
 };
 
 // Summation density calculation
@@ -102,7 +102,7 @@ double calc_omega(const Particle &p, ParticleArrayPtr p_arr, Config c) {
 // produces silly values. Only used if GSL_DEBUG is defined.
 void print_state (size_t iter, gsl_multiroot_fdfsolver* s)
 {
-    printf("iter = %3lu x = % .3f % .3f f(x) = % .3e % .3e\n",
+    printf("[INFO] iter = %3lu h = % .3f rho = % .3f | h(rho) = % .3e rho(h) = % .3e\n",
             iter,
             gsl_vector_get (s->x, 0),
             gsl_vector_get (s->x, 1),
@@ -154,7 +154,8 @@ int smoothing_fdf(const gsl_vector* x, void *params, gsl_vector* f, gsl_matrix* 
 std::pair<double, double> rootfind_h(
     const Particle &p, 
     const ParticleArrayPtr p_arr,
-    const Config c
+    const Config c,
+    bool show_steps
 ) {
     const gsl_multiroot_fdfsolver_type *T;
     gsl_multiroot_fdfsolver *s;
@@ -207,9 +208,8 @@ std::pair<double, double> rootfind_h(
     s = gsl_multiroot_fdfsolver_alloc(T, 2);
     gsl_multiroot_fdfsolver_set(s, &f, x);
 
-    #ifdef H_DEBUG 
-    print_state(iter, s);
-    #endif
+    if (show_steps)
+        print_state(iter, s);
 
     do {
         iter++;
@@ -218,9 +218,8 @@ std::pair<double, double> rootfind_h(
         if (status)
             break;
 
-        #ifdef H_DEBUG 
-        print_state(iter, s); 
-        #endif
+        if (show_steps)
+            print_state(iter, s); 
         
         status = gsl_multiroot_test_residual(s->f, H_EPSILON);
     } while (status == GSL_CONTINUE && iter < H_MAX_ITER);
@@ -229,6 +228,13 @@ std::pair<double, double> rootfind_h(
     if (status != GSL_SUCCESS && status != GSL_ENOPROG && status != GSL_ENOPROGJ) {
         std::cout << "[WARN] Smoothing length root-finding failed for particle id " << p.id << 
                      " with status '" << gsl_strerror(status) << "'" << std::endl;
+        
+        #ifdef H_DEBUG
+        if (!show_steps) { // Prevent infinite loop
+            std::cout << "[WARN] Re-running root-finding with steps:" << std::endl;
+            return rootfind_h(p, p_arr, c, true);
+        }
+        #endif
     }
     #endif
 
@@ -236,6 +242,13 @@ std::pair<double, double> rootfind_h(
     if (status == GSL_ENOPROG || status == GSL_ENOPROGJ) {
         std::cout << "[WARN] Smoothing length root-finding encountered an issue on particle id " 
                   << p.id << ": '" << gsl_strerror(status) << "'" << std::endl;
+
+        #ifdef H_DEBUG
+        if (!show_steps) {
+            std::cout << "[WARN] Re-running root-finding with steps:" << std::endl;
+            return rootfind_h(p, p_arr, c, true);
+        }
+        #endif
         
     }
     #endif

@@ -17,6 +17,7 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <boost/smart_ptr/make_shared.hpp>
 
 #include "setup.hpp"
 #include "basictypes.hpp"
@@ -51,7 +52,7 @@ int main(int argc, char* argv[]) {
     Config config = config_reader.GetConfig();
 
     // Allocate memory for particle array. Using a vector would've been way easier but I thought an
-    // array would be mOrE eFfIcIeNt and now I can't be bothered to change all the references to
+    // array would be mOrE eFfIcIeNt and now I can't be bothered to change all the references of
     // this type
     ParticleArrayPtr p_arr;
 

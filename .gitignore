@@ -18,3 +18,8 @@ data/*
 densities.txt
 dumps/*
 plots/spare_code.ipynb
+
+# Report temp files (whitelist)
+report/*
+!report/*.pdf
+!report/*.tex
