@@ -60,10 +60,13 @@ void SPHSimulation::step_forward() {
         p.vel += p.acc * (timestep / 2);
         // Position
         p.pos += p.vel * (timestep);
+        // Thermal energy
+        p.u += p.du_dt * (timestep);
 
-        // Recalculate density and acceleration, as position has changed
+        // Recalculate density and density-dependent quantities
         dc(p);
         ac(p);
+        ec(p);
 
         // Remaining half-step velocity
         p.vel += p.acc * (timestep / 2);
@@ -77,9 +80,9 @@ void SPHSimulation::file_write() {
     outstream.open("/home/jay/Dropbox/University/Y4/PHYM004/sph/dumps/" + std::to_string(dump_counter) + ".txt");
     outstream << "# This file was dumped at t = " << current_time << std::endl;
     outstream << "# Column definitions:" << std::endl;
-    outstream << "# Particle ID / Type / Smoothing length / Density / Pressure / Acceleration / Velocity / Position" << std::endl;
+    outstream << "# Particle ID / Type / Smoothing length / Density / Pressure / Acceleration / Velocity / Position / Thermal energy" << std::endl;
     outstream << "# Aligned definition 'tags' for easier reading:" << std::endl;
-    outstream << "#ID     TYPE     H        DENSITY  PRESS    ACCEL     VEL        POS" << std::endl;
+    outstream << "# ID    TYPE     H        DENSITY  PRESS    ACCEL     VEL       POS       U" << std::endl;
 
     for (int i = 0; i < config.n_part; i++) {
         Particle& p = p_arr[i];
@@ -90,8 +93,9 @@ void SPHSimulation::file_write() {
         // https://github.com/fmtlib/fmt
         
         char buffer[256];
-        sprintf(buffer, "%4d    %s    %3.3f    %3.3f    %3.3f    %+3.3f    %+3.3f    %+3.3f\n", 
-                p.id, ParticleTypeNames[p.type], p.h, p.density, p.pressure, p.acc, p.vel, p.pos);
+        sprintf(buffer, 
+                "%4d    %s    %3.3f    %3.3f    %3.3f    %+3.3f    %+3.3f    %+3.3f    %3.3f\n", 
+                p.id, ParticleTypeNames[p.type], p.h, p.density, p.pressure, p.acc, p.vel, p.pos, p.u);
         outstream << buffer;
     }
 

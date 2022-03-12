@@ -15,12 +15,23 @@
 #include "kernel.hpp"
 #include "smoothing_length.hpp"
 
+double Calculator::grad_W(const Particle &p_i, const Particle &p_j, double h) {
+    double r_ij = p_i.pos - p_j.pos;
+    // The unit vector is +-1, depending on the sign of the vector, because we are in 1D
+    double r_ij_unit = (r_ij > 0) ? 1 : -1;
+
+    double q = std::abs(r_ij) / h;
+    double grad_W = dkernel_dq(q) * r_ij_unit; // Rosswog 2009 eq. 25
+
+    return grad_W;
+}
+
 #pragma region DensityCalculator
 
 #ifdef USE_VARIABLE_H
 // Variable smoothing length implementation
 void DensityCalculator::operator()(Particle &p) {
-    std::pair<double, double> root_result = rootfind_h(p, p_all, config);
+    std::pair<double, double> root_result = rootfind_h(p, p_arr, config);
 
     // Retrieve smoothing length (with sanity check)
     double h = root_result.first;
@@ -41,7 +52,7 @@ void DensityCalculator::operator()(Particle &p) {
         std::cout << "[WARN] Smoothing length root-finding for particle id: " << p.id << 
                   " returned negative density: " << density << std::endl;
 
-        double new_density = calc_density(p, p.h, p_all.get(), config.n_part);
+        double new_density = calc_density(p, p.h, p_arr.get(), config.n_part);
 
         std::cout << "[WARN] Recalculated above negative density as " << new_density << std::endl;
         p.density = new_density;
@@ -54,7 +65,7 @@ void DensityCalculator::operator()(Particle &p) {
     double d_sum = 0;
 
     for (int i = 0; i < config.n_part; i++) {
-        Particle p_j = p_all[i];
+        Particle p_j = p_arr[i];
         double q = std::abs(p.pos - p_j.pos) / CONSTANT_H;
         double w = kernel(q);
 
@@ -81,7 +92,7 @@ void AccelerationCalculator::operator()(Particle &p_i) {
     double c_s = sound_speed();
     double Pr_i = pressure_isothermal(p_i, c_s);
     p_i.pressure = Pr_i;
-    double Pr_rho_i = Pr_i / std::pow(p_i.density, 2) / calc_omega(p_i, p_all, config);
+    double Pr_rho_i = Pr_i / std::pow(p_i.density, 2) / calc_omega(p_i, p_arr, config);
 
     double acc = 0;
 
@@ -89,21 +100,15 @@ void AccelerationCalculator::operator()(Particle &p_i) {
     ensure_nonzero_density(p_i);
 
     for (int i = 0; i < config.n_part; i++) {
-        Particle &p_j = p_all[i];
+        Particle &p_j = p_arr[i];
         ensure_nonzero_density(p_j);
 
         if (p_j != p_i) {
             double r_ij = p_i.pos - p_j.pos;
 
-            // The unit vector is +-1, depending on the sign of the vector, because we are in 1D
-            double r_ij_unit = (r_ij > 0) ? 1 : -1;
-
-            double q_i = std::abs(r_ij) / p_i.h;
-            double grad_W_i = dkernel_dq(q_i) * r_ij_unit; // Rosswog 2009 eq. 25
-
-            // Different smoothing length of particle b. Gradient still w.r.t. a
-            double q_j = std::abs(r_ij) / p_j.h;
-            double grad_W_j = dkernel_dq(q_j) * r_ij_unit;
+            double grad_W_i = grad_W(p_i, p_j, p_i.h);
+            // Different smoothing length of particle j. Gradient still w.r.t. i
+            double grad_W_j = grad_W(p_i, p_j, p_j.h);
 
             double Pr_j;
             if (config.pressure_calc == Isothermal)
@@ -111,7 +116,7 @@ void AccelerationCalculator::operator()(Particle &p_i) {
             else
                 throw std::invalid_argument("Adiabatic EoS not yet implemented!");
 
-            double Pr_rho_j = Pr_j / std::pow(p_j.density, 2) / calc_omega(p_j, p_all, config);
+            double Pr_rho_j = Pr_j / std::pow(p_j.density, 2) / calc_omega(p_j, p_arr, config);
 
             // TODO: Figure out how artificial viscosity fits into this equation!
             double visc_ij = artificial_viscosity(p_i, p_j, r_ij, p_i.h, c_s);
@@ -146,17 +151,13 @@ void AccelerationCalculator::operator()(Particle &p_i) {
     ensure_nonzero_density(p_i);
 
     for (int i = 0; i < config.n_part; i++) {
-        Particle &p_j = p_all[i];
+        Particle &p_j = p_arr[i];
         ensure_nonzero_density(p_j);
 
         if (p_j != p_i) {
             double r_ij = p_i.pos - p_j.pos;
 
-            // The unit vector is +-1, depending on the sign of the vector, because we are in 1D
-            double r_ij_unit = (r_ij > 0) ? 1 : -1;
-
-            double q = std::abs(r_ij) / h;
-            double grad_W = dkernel_dq(q) * r_ij_unit; // Rosswog 2009 eq. 25
+            double grad_W = grad_W(p_i, p_j, c.smoothing_length);
 
             double Pr_j;
             if (config.pressure_calc == Isothermal)
@@ -218,6 +219,24 @@ void AccelerationCalculator::ensure_nonzero_density(const Particle &p) {
 
         throw new std::logic_error("Particle had density less than epsilon!");
     }
+}
+
+#pragma endregion
+
+#pragma region EnergyCalculator
+
+void EnergyCalculator::operator()(Particle &p) {
+    // Price 2012 eqn. 35
+    double omega = calc_omega(p, p_arr, config);
+    double coeff = p.pressure / (omega * std::pow(p.density, 2));
+
+    double sum = 0;
+    for (int i = 0; i < config.n_part; i++) {
+        Particle p_j = p_arr[i];
+        sum += p_j.mass * (p.vel - p_j.vel) * grad_W(p, p_j, p.h);
+    }
+
+    p.du_dt = coeff * sum;
 }
 
 #pragma endregion

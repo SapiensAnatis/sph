@@ -21,14 +21,18 @@ class Calculator {
     public:
         // ctor
         Calculator(const Config &c, ParticleArrayPtr p_arr_ptr) 
-            : config(c), p_all(p_arr_ptr) {}
+            : config(c), p_arr(p_arr_ptr) {}
         // Calculation function
         virtual void operator()(Particle &p) {
             throw new std::logic_error("Attempt to call un-implemented operator() function!");
         }
     protected:
         const Config config;
-        const ParticleArrayPtr p_all;
+        const ParticleArrayPtr p_arr;
+
+        // Calculate the gradient of W between p_i, p_j with respect to the coordinates of p_i.
+        // Used in acceleration and energy calculators.
+        double grad_W(const Particle &p_i, const Particle &p_j, double h);
 
 };
 
@@ -38,7 +42,8 @@ class DensityCalculator : public Calculator {
         DensityCalculator(const Config &c, ParticleArrayPtr p_arr_ptr) 
             : Calculator(c, p_arr_ptr) {};
         
-        // Calculate the smoothing length for a particle and then the density
+        // Calculate the smoothing length for a particle and then the density. This void method sets
+        // the properties on p.
         void operator()(Particle &p) override;
 };
 
@@ -92,6 +97,16 @@ class AccelerationCalculator : public Calculator {
 
         // Check that p's density is not less than epsilon, and throw an error if it is.
         void ensure_nonzero_density(const Particle &p);
+};
+
+class EnergyCalculator : public Calculator {
+    public:
+        // ctor -- just call base class
+        EnergyCalculator(const Config &c, ParticleArrayPtr p_arr_ptr) 
+            : Calculator(c, p_arr_ptr) {};
+            
+        // Calculate du/dt for a particle and set it as a property
+        void operator()(Particle &p) override;
 };
 
 #endif

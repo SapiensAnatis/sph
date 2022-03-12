@@ -19,7 +19,7 @@ class SPHSimulation {
     public:
         // ctor
         SPHSimulation(const Config &c, ParticleArrayPtr p_arr) 
-            : config(c), dc(c, p_arr), ac(c, p_arr), timestep(c.t_i)
+            : config(c), dc(c, p_arr), ac(c, p_arr), ec(c, p_arr), timestep(c.t_i)
         {
             // Copy pointer
             this->p_arr = ParticleArrayPtr(p_arr);
@@ -35,6 +35,7 @@ class SPHSimulation {
 
         DensityCalculator dc;
         AccelerationCalculator ac;
+        EnergyCalculator ec;
         
         double current_time = 0;
         double timestep;

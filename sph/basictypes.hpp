@@ -56,7 +56,8 @@ struct Particle {
 
     double h; // Smoothing length
 
-    double u; // energy
+    double du_dt; // Thermal energy derivative w.r.t time
+    double u; // Thermal energy
     double density;
     double pressure;
 
