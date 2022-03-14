@@ -60,6 +60,12 @@ class AccelerationCalculator : public Calculator {
         // Equation 2.27 of Bate thesis
         void operator()(Particle &p_i) override;
 
+        // Get sound speed -- seperate method to be disentangled from pressure calculation methods.
+        // Public as it's used to set initial velocities in setup.cpp for the adiabatic test.
+        // If isothermal pressure calculation is enabled, then this just returns 1. If
+        // adiabatic pressure calculation is enabled, it uses sqrt(gamma * pressure / density)
+        double sound_speed(Particle p);
+
     private:
         /* Calculate pressure using isothermal equation of state (Bate thesis 2.22)
          * Parameters:
@@ -67,11 +73,13 @@ class AccelerationCalculator : public Calculator {
          *      c_s: sound speed
          */
         double pressure_isothermal(const Particle &p, double c_s);
+
+        /* Calculate pressure using adiabatic equation of state (Bate thesis 2.23)
+         * Parameters:
+                p: calculate the pressure using the density and internal energy of this particle
+         */
+        double pressure_adiabatic(const Particle &p);
         
-        // Get sound speed -- just constant value, but disentangled from method to be modifiable
-        double sound_speed();
-        
-        // 
         
         /*
          * Get artificial viscosity Π_ij between two particles. 

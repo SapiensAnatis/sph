@@ -9,18 +9,19 @@ n_part 101
 mass 0.04
 
 # Pressure calculation mode. 0: Isothermal, 1: Adiabatic
-pressure_calc 0
+pressure_calc 1
 
 # Boundary size -- as measured from either side of the origin (so the total width of the space will 
 # be twice this value)
 limit 2
 
-# The initial velocity to give to particles when setting up the calculation
+# The initial velocity to give to particles when setting up the calculation. Ignored if adiabatic
+# pressure calculation is enabled; 
 v_0 1
 
 # Smoothing length in terms of mean particle spacing (a.k.a. eta parameter, see Price 2012 eq. 10)
 # The number of neighbours for each particle is approximately four times this value
-smoothing_length 2
+smoothing_length 3
 
 # The initial timestep to use for the simulation
 t_i 0.005

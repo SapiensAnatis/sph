@@ -16,15 +16,15 @@ test.sh
 data/*
 densities.txt
 dumps/*
-plots/spare_code.ipynb
 
 # Plots
-
-*.png
-*.svg
+plots/*
 
 # Report temp files (whitelist)
 report/*
 *.pdf
 *.pdf_tex
-!report/*.pdf
+report/*.pdf
+
+# config.txt is in the repo, but should stop being in every commit
+config.txt

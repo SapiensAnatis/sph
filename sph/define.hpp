@@ -24,6 +24,9 @@ const double CALC_EPSILON = 1e-8;
 #define USE_VARIABLE_H
 // If not using variable smoothing length, constant value to use
 const double CONSTANT_H = 0.2;
+// Polytropic index for adiabatic equation of state. Used to calculate pressures and set initial
+// particle energy (Bate eq. 2.23)
+const double GAMMA = 5.0/3.0;
 
 // === smoothing_length.cpp ===
 

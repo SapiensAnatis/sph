@@ -104,8 +104,11 @@ struct Particle {
 
     // ostream operator -- enables 'printing' of particles
     friend std::ostream& operator <<(std::ostream& os, const Particle& p) {
-        return os << "<Particle> id: " << p.id << " type: " << ParticleTypeNames[p.type] 
-                  << " pos: " << p.pos << " vel: " << p.vel;
+        return os << "<Particle> id: " << p.id 
+                  << " type: " << ParticleTypeNames[p.type] 
+                  << " pos: " << p.pos 
+                  << " vel: " << p.vel
+                  << " density: " << p.density;
     }
 };
 

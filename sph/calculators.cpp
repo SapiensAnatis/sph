@@ -89,9 +89,24 @@ void AccelerationCalculator::operator()(Particle &p_i) {
 
     // I have tried to use variable names that correspond to how this equation is typeset in the
     // Bate thesis. Pr = pressure, p = particle, rho = density, W = weight function
-    double c_s = sound_speed();
-    double Pr_i = pressure_isothermal(p_i, c_s);
+    double c_s;
+    double Pr_i;
+
+    // Annoyingly, in the isothermal case pressure is dependent on sound speed, but in the adiabatic
+    // case, sound speed is dependent on pressure. So the order switches based on which one is used.
+    if (config.pressure_calc == Isothermal) {
+        c_s = sound_speed(p_i);
+        Pr_i = pressure_isothermal(p_i, c_s);
+    } else if (config.pressure_calc == Adiabatic) {
+        Pr_i = pressure_adiabatic(p_i);
+        c_s = sound_speed(p_i);
+    } else {
+        throw std::logic_error("Unknown pressure calculation mode!");
+    }
+
+    // Keep track of pressures as they can be used to verify the analytical solution
     p_i.pressure = Pr_i;
+
     double Pr_rho_i = Pr_i / std::pow(p_i.density, 2) / calc_omega(p_i, p_arr, config);
 
     double acc = 0;
@@ -113,15 +128,17 @@ void AccelerationCalculator::operator()(Particle &p_i) {
             double Pr_j;
             if (config.pressure_calc == Isothermal)
                 Pr_j = pressure_isothermal(p_j, c_s);
+            else if (config.pressure_calc == Adiabatic)
+                Pr_j = pressure_adiabatic(p_j);
             else
-                throw std::invalid_argument("Adiabatic EoS not yet implemented!");
+                throw std::logic_error("Unknown pressure calculation mode!");
 
             double Pr_rho_j = Pr_j / std::pow(p_j.density, 2) / calc_omega(p_j, p_arr, config);
 
             // TODO: Figure out how artificial viscosity fits into this equation!
             double visc_ij = artificial_viscosity(p_i, p_j, r_ij, p_i.h, c_s);
 
-            // Rosswog 2009 eqn 120
+            // Rosswog 2009 eqn 120 (plus viscosity?) I know it's horrible, I'm sorry
             double to_add = -p_j.mass * ((grad_W_i * Pr_rho_i) + (grad_W_i * visc_ij) + (grad_W_j * Pr_rho_j));
             acc += to_add;
         }
@@ -137,17 +154,24 @@ void AccelerationCalculator::operator()(Particle &p_i) {
     if (p_i.type == Ghost)
         return;
 
-    // I have tried to use variable names that correspond to how this equation is typeset in the
-    // Bate thesis. Pr = pressure, p = particle, rho = density, W = weight function
-    double c_s = sound_speed();
-    double Pr_i = pressure_isothermal(p_i, c_s);
-    p_i.pressure = Pr_i;
+    double c_s;
+    double Pr_i;
+    
+    if (config.pressure_calc == Isothermal) {
+        c_s = sound_speed(p_i);
+        Pr_i = pressure_isothermal(p_i, c_s);
+    } else if (config.pressure_calc == Adiabatic) {
+        Pr_i = pressure_adiabatic(p_i);
+        c_s = sound_speed(p_i);
+    } else {
+        throw std::logic_error("Unknown pressure calculation mode!");
+    }
+
     double Pr_rho_i = Pr_i / std::pow(p_i.density, 2);
 
     double acc = 0;
     double h = CONSTANT_H;
 
-    // Density = 0 will cause div by zero and screw everything up. Should never really happen
     ensure_nonzero_density(p_i);
 
     for (int i = 0; i < config.n_part; i++) {
@@ -155,6 +179,9 @@ void AccelerationCalculator::operator()(Particle &p_i) {
         ensure_nonzero_density(p_j);
 
         if (p_j != p_i) {
+            // No omega terms, basically the only difference. Also everything is multiplied by
+            // grad_W_i
+            
             double r_ij = p_i.pos - p_j.pos;
 
             double grad_W = grad_W(p_i, p_j, c.smoothing_length);
@@ -162,8 +189,10 @@ void AccelerationCalculator::operator()(Particle &p_i) {
             double Pr_j;
             if (config.pressure_calc == Isothermal)
                 Pr_j = pressure_isothermal(p_j, c_s);
+            else if (config.pressure_calc == Adiabatic)
+                Pr_j = pressure_adiabatic(p_j);
             else
-                throw std::invalid_argument("Adiabatic EoS not yet implemented!");
+                throw std::logic_error("Unknown pressure calculation mode!");
 
             double Pr_rho_j = Pr_j / std::pow(p_j.density, 2);
 
@@ -181,9 +210,17 @@ double AccelerationCalculator::pressure_isothermal(const Particle &p, double c_s
     return std::pow(c_s, 2) * p.density;
 }
 
-double AccelerationCalculator::sound_speed() {
-    // 1 m.s^-1
-    return 1;
+double AccelerationCalculator::pressure_adiabatic(const Particle &p) {
+    return (GAMMA - 1) * p.u * p.density;
+}
+
+double AccelerationCalculator::sound_speed(Particle p) {
+    if (config.pressure_calc == Isothermal)
+        return 1;
+    else if (config.pressure_calc == Adiabatic)
+        return std::sqrt(GAMMA * p.pressure / p.density);
+    else
+        throw std::logic_error("Unknown pressure calculation mode!");
 }
 
 double AccelerationCalculator::artificial_viscosity(

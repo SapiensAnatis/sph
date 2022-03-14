@@ -13,7 +13,6 @@
 
 #include "define.hpp"
 #include "setup.hpp"
-#include "calculators.hpp"
 
 #pragma region ConfigParsing
 
@@ -133,9 +132,9 @@ void ConfigReader::set_property(PressureCalc &prop, ConfigMap &config_map, const
 #pragma endregion
 #pragma region ParticleInitialization
 
-void init_particles(Config &c, ParticleArrayPtr &p_arr_ptr)
+void init_particles(Config &config, ParticleArrayPtr &p_arr)
 {
-    double max_x = c.limit;
+    double max_x = config.limit;
     double min_x = -max_x;
 
     #ifndef UNIFORM_DIST
@@ -144,32 +143,67 @@ void init_particles(Config &c, ParticleArrayPtr &p_arr_ptr)
         auto rand = std::uniform_real_distribution<double>(min_x, max_x);
     #endif
 
-    for (int i = 0; i < c.n_part; i++) {
-        Particle& p  = p_arr_ptr[i];
+    for (int i = 0; i < config.n_part; i++) {
+        Particle& p  = p_arr[i];
 
         #ifndef UNIFORM_DIST
             double pos = rand(eng);
         #endif
 
         #ifdef UNIFORM_DIST
-            double spacing = (max_x - min_x) / (c.n_part-1);
+            double spacing = (max_x - min_x) / (config.n_part-1);
             double pos = min_x + spacing * i;
         #endif
+        
         // +v_0 if pos negative, -v_0 otherwise
-        double vel = (pos < 0) ? c.v_0 : -c.v_0;
+        double vel = (pos < 0) ? config.v_0 : -config.v_0;
         
         p.pos = pos;
+        p.mass = config.mass;
+        // p.vel will be overwritten later if the adiabatic option is enabled, as soon as the
+        // acceleration is known, which defines the pressure as an intermediate and thus the sound
+        // speed
         p.vel = vel;
-        p.mass = c.mass;
+
+        // Set initial adiabatic energy
+        if (config.pressure_calc == Adiabatic)
+            p.u = 1/(GAMMA - 1);
     }
 
-    init_ghost_particles(c, p_arr_ptr);
+    
+    init_ghost_particles(config, p_arr);
 
-    std::cout << "[INFO] Initialized " << c.n_ghost << " ghost particles." << std::endl;
-    std::cout << "[INFO] Initialized " << c.n_part << " total particles." << std::endl;
+    // Calculate conditions at T = 0. We are doing this here rather than in SPHSimulation as the
+    // adiabatic test requires initial velocities are set to sound speed, which requires knowing
+    // the pressures and densities, which requires calculating initial acceleration.
+
+    // Create a new DensityCalculator with new array reference from ghost particle reallocation
+    auto dc = DensityCalculator(config, p_arr);
+    auto ac = AccelerationCalculator(config, p_arr);
+    auto ec = EnergyCalculator(config, p_arr);
+
+    for (int i = 0; i < config.n_part; i++) {
+        dc(p_arr[i]);
+    }
+
+    for (int i = 0; i < config.n_part; i++) {
+        ac(p_arr[i]);
+    }
+
+    // Now that pressures are defined (by AccelerationCalculator) we can overwrite initial
+    // velocities for the adiabatic test
+    if (config.pressure_calc == Adiabatic) {
+        for (int i = 0; i < config.n_part; i++) {
+            double c_s = ac.sound_speed(p_arr[i]);
+            p_arr[i].vel = (p_arr[i].pos < 0) ? c_s : -c_s;
+        }
+    }
+
+    std::cout << "[INFO] Initialized " << config.n_ghost << " ghost particles." << std::endl;
+    std::cout << "[INFO] Initialized " << config.n_part << " total particles." << std::endl;
 }
 
-void init_ghost_particles(Config &c, ParticleArrayPtr &p_arr_ptr) {
+void init_ghost_particles(Config &config, ParticleArrayPtr &p_arr) {
     // Initialize ghost particles. This is not the 'proper' way of doing it, which is based on
     // neighbour trees etc., but essentially the way it works is: For the leftmost and rightmost
     // particle in the array, collect all the particles within a smoothing length and duplicate
@@ -190,8 +224,8 @@ void init_ghost_particles(Config &c, ParticleArrayPtr &p_arr_ptr) {
 
     // Just going through keeping track of what the lowest/highest positions seen so far is, and
     // their corresponding indices
-    for (int i = 0; i < c.n_part; i++) {
-        Particle& p = p_arr_ptr[i];
+    for (int i = 0; i < config.n_part; i++) {
+        Particle& p = p_arr[i];
         
         if (p.pos < min_x) {
             min_x_idx = i;
@@ -202,8 +236,8 @@ void init_ghost_particles(Config &c, ParticleArrayPtr &p_arr_ptr) {
         }
     }
 
-    Particle& left = p_arr_ptr[min_x_idx];
-    Particle& right = p_arr_ptr[max_x_idx];
+    Particle& left = p_arr[min_x_idx];
+    Particle& right = p_arr[max_x_idx];
 
     // Collect neighbours of left and right
     std::vector<Particle> l_neighbours; 
@@ -213,7 +247,7 @@ void init_ghost_particles(Config &c, ParticleArrayPtr &p_arr_ptr) {
     // To know what particles are the neighbours now that we have variable smoothing length, we
     // first need to calculate the density of left and right, since that will set their smoothing
     // lengths.
-    auto dc = DensityCalculator(c, p_arr_ptr);
+    auto dc = DensityCalculator(config, p_arr);
     dc(left);
     dc(right);
 
@@ -226,8 +260,8 @@ void init_ghost_particles(Config &c, ParticleArrayPtr &p_arr_ptr) {
     double right_h = CONSTANT_H;
     #endif
 
-    for (int i = 0; i < c.n_part; i++) {
-        Particle p = p_arr_ptr[i];
+    for (int i = 0; i < config.n_part; i++) {
+        Particle p = p_arr[i];
 
         if (p == left || p == right)
             // Don't collect the particles themselves
@@ -269,37 +303,37 @@ void init_ghost_particles(Config &c, ParticleArrayPtr &p_arr_ptr) {
     // It's a bit easier to work with raw pointers when copying with data, so we switch back to
     // shared pointers later.
     int n_ghost = l_neighbours.size() + r_neighbours.size();
-    c.n_ghost = n_ghost;
+    config.n_ghost = n_ghost;
 
-    Particle* old_ptr = p_arr_ptr.get();
+    Particle* old_ptr = p_arr.get();
     Particle* new_ptr;
 
     try {
-        new_ptr = new Particle[c.n_part + n_ghost];
+        new_ptr = new Particle[config.n_part + n_ghost];
     } catch (std::bad_alloc &e) {
-        size_t bytes = (c.n_part + n_ghost) * sizeof(Particle);
+        size_t bytes = (config.n_part + n_ghost) * sizeof(Particle);
         std::cerr << "[ERROR] Failed to reallocate array for creation of ghost particles!" << std::endl;
-        std::cerr << "[ERROR] Attempted to allocate " << bytes << " bytes for " << c.n_part
+        std::cerr << "[ERROR] Attempted to allocate " << bytes << " bytes for " << config.n_part
                   << " particles and " << n_ghost << " ghost particles" << std::endl;
         exit(1);
     }
 
     // Copy over old data
-    std::copy(old_ptr, old_ptr + c.n_part, new_ptr);
+    std::copy(old_ptr, old_ptr + config.n_part, new_ptr);
 
     // Reinitialize shared ptr. This will free old_ptr as the smart pointer detects it is no longer
     // in use.
-    p_arr_ptr.reset(new_ptr);
+    p_arr.reset(new_ptr);
     // Add to end of array
-    std::copy(l_neighbours.begin(), l_neighbours.end(), p_arr_ptr.get() + c.n_part);
+    std::copy(l_neighbours.begin(), l_neighbours.end(), p_arr.get() + config.n_part);
 
     // Imperative to update n_part, both for copy below and so that ghost particles are not
     // ignored in subsequent iteration e.g. calculators.cpp.
-    c.n_part += l_neighbours.size();
+    config.n_part += l_neighbours.size();
 
-    std::copy(r_neighbours.begin(), r_neighbours.end(), p_arr_ptr.get() + c.n_part);
+    std::copy(r_neighbours.begin(), r_neighbours.end(), p_arr.get() + config.n_part);
 
-    c.n_part += r_neighbours.size();
+    config.n_part += r_neighbours.size();
 }
 
 #pragma endregion

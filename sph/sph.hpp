@@ -19,11 +19,8 @@ class SPHSimulation {
     public:
         // ctor
         SPHSimulation(const Config &c, ParticleArrayPtr p_arr) 
-            : config(c), dc(c, p_arr), ac(c, p_arr), ec(c, p_arr), timestep(c.t_i)
-        {
-            // Copy pointer
-            this->p_arr = ParticleArrayPtr(p_arr);
-        }
+            : config(c), p_arr(p_arr), dc(c, p_arr), ac(c, p_arr), ec(c, p_arr), timestep(c.t_i)
+        {}
 
         // Start the simulation (and block the thread until current_time reaches end_time)
         void start(double end_time);

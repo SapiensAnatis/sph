@@ -17,6 +17,7 @@
 #include <map>
 
 #include "basictypes.hpp"
+#include "calculators.hpp"
 
 // propertyname, value map read in from file
 typedef std::map<std::string, std::string> ConfigMap;
@@ -57,7 +58,7 @@ class ConfigReader {
 // Take in a pointer to a particle array, and loop through it to properly initialize the particles.
 void init_particles(Config &c, ParticleArrayPtr &p_arr_ptr);
 
-// Called into by above -- setup ghost particles around the boundary
+// Called into by above -- setup ghost particles around the boundary.
 void init_ghost_particles(Config &c, ParticleArrayPtr &p_arr_ptr);
 
 #endif

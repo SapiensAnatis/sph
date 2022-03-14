@@ -17,15 +17,8 @@ void SPHSimulation::start(double end_time) {
 
     // These print statements help to identify where the program has had an error, if one occurs.
     std::cout << "[INFO] Simulation time: " << current_time << " / " << end_time << std::endl;
-    
-    for (int i = 0; i < config.n_part; i++) {
-        dc(p_arr[i]);
-    }
-    
-    for (int i = 0; i < config.n_part; i++) {
-        ac(p_arr[i]);
-    }
 
+    // Initial densities/acceleration/pressure etc was handled in setup.cpp
     file_write();
 
     // And so it begins. Note that `while(current_time < end_time)` produces
