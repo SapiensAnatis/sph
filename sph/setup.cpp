@@ -168,6 +168,11 @@ void init_particles(Config &config, ParticleArrayPtr &p_arr)
         // Set initial adiabatic energy
         if (config.pressure_calc == Adiabatic)
             p.u = 1/(GAMMA - 1);
+
+        // Set constant h
+        #ifndef USE_VARIABLE_H
+        p.h = CONSTANT_H;
+        #endif
     }
 
     
@@ -250,18 +255,11 @@ void init_ghost_particles(Config &config, ParticleArrayPtr &p_arr) {
     auto dc = DensityCalculator(config, p_arr);
     dc(left);
     dc(right);
-
-    double left_h = left.h;
-    double right_h = right.h;
-    #endif
-
-    #ifndef USE_VARIABLE_H
-    double left_h = CONSTANT_H;
-    double right_h = CONSTANT_H;
     #endif
 
     for (int i = 0; i < config.n_part; i++) {
         Particle p = p_arr[i];
+        std::cout << p << std::endl;
 
         if (p == left || p == right)
             // Don't collect the particles themselves
@@ -272,9 +270,9 @@ void init_ghost_particles(Config &config, ParticleArrayPtr &p_arr) {
 
         // Creates copies of p, since the vector is of non-reference Particle. 2*smoothing length
         // as that is the limit of the kernel, so ensures that edge particles have full neighbours
-        if (l_dist < left_h * 2)
+        if (l_dist < left.h * 2)
             l_neighbours.push_back(p);
-        else if (r_dist < right_h * 2)
+        else if (r_dist < right.h * 2)
             r_neighbours.push_back(p);   
     }
 

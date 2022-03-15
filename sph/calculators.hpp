@@ -66,7 +66,7 @@ class AccelerationCalculator : public Calculator {
         // adiabatic pressure calculation is enabled, it uses sqrt(gamma * pressure / density)
         double sound_speed(Particle p);
 
-    private:
+    protected:
         /* Calculate pressure using isothermal equation of state (Bate thesis 2.22)
          * Parameters:
          *      p: calculate the pressure using the density estimate at this particle
@@ -107,11 +107,13 @@ class AccelerationCalculator : public Calculator {
         void ensure_nonzero_density(const Particle &p);
 };
 
-class EnergyCalculator : public Calculator {
+// Inherit from AccelerationCalculator instead of base Calculator, as we require use of artificial
+// viscosity and sound speed methods
+class EnergyCalculator : public AccelerationCalculator {
     public:
         // ctor -- just call base class
         EnergyCalculator(const Config &c, ParticleArrayPtr p_arr_ptr) 
-            : Calculator(c, p_arr_ptr) {};
+            : AccelerationCalculator(c, p_arr_ptr) {};
             
         // Calculate du/dt for a particle and set it as a property
         void operator()(Particle &p) override;

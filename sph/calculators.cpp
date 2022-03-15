@@ -80,9 +80,9 @@ void DensityCalculator::operator()(Particle &p) {
 #pragma endregion
 #pragma region AccelerationCalculator
 
-#ifdef USE_VARIABLE_H
 // Version of acceleration calculation that accounts for variable smoothing length, by adding in
-// 'omega terms' (Rosswog eqns. 118-121)
+// 'omega terms' (Rosswog eqns. 118-121). If USE_VARIABLE_H isn't defined then calc_omega() just
+// returns 1, simplifying it to the standard SPH expression.
 void AccelerationCalculator::operator()(Particle &p_i) {
     if (p_i.type == Ghost)
         return;
@@ -146,65 +146,6 @@ void AccelerationCalculator::operator()(Particle &p_i) {
 
     p_i.acc = acc;
 }
-#endif
-
-#ifndef USE_VARIABLE_H
-// Constant H version of above
-void AccelerationCalculator::operator()(Particle &p_i) {
-    if (p_i.type == Ghost)
-        return;
-
-    double c_s;
-    double Pr_i;
-    
-    if (config.pressure_calc == Isothermal) {
-        c_s = sound_speed(p_i);
-        Pr_i = pressure_isothermal(p_i, c_s);
-    } else if (config.pressure_calc == Adiabatic) {
-        Pr_i = pressure_adiabatic(p_i);
-        c_s = sound_speed(p_i);
-    } else {
-        throw std::logic_error("Unknown pressure calculation mode!");
-    }
-
-    double Pr_rho_i = Pr_i / std::pow(p_i.density, 2);
-
-    double acc = 0;
-    double h = CONSTANT_H;
-
-    ensure_nonzero_density(p_i);
-
-    for (int i = 0; i < config.n_part; i++) {
-        Particle &p_j = p_arr[i];
-        ensure_nonzero_density(p_j);
-
-        if (p_j != p_i) {
-            // No omega terms, basically the only difference. Also everything is multiplied by
-            // grad_W_i
-            
-            double r_ij = p_i.pos - p_j.pos;
-
-            double grad_W = grad_W(p_i, p_j, c.smoothing_length);
-
-            double Pr_j;
-            if (config.pressure_calc == Isothermal)
-                Pr_j = pressure_isothermal(p_j, c_s);
-            else if (config.pressure_calc == Adiabatic)
-                Pr_j = pressure_adiabatic(p_j);
-            else
-                throw std::logic_error("Unknown pressure calculation mode!");
-
-            double Pr_rho_j = Pr_j / std::pow(p_j.density, 2);
-
-            double visc_ij = artificial_viscosity(p_i, p_j, r_ij, h, c_s);
-            double to_add = -p_j.mass * (Pr_rho_i + Pr_rho_j + visc_ij) * grad_W;
-            acc += to_add;
-        }
-    }
-
-    p_i.acc = acc;
-}
-#endif
 
 double AccelerationCalculator::pressure_isothermal(const Particle &p, double c_s) {
     return std::pow(c_s, 2) * p.density;
@@ -265,15 +206,27 @@ void AccelerationCalculator::ensure_nonzero_density(const Particle &p) {
 void EnergyCalculator::operator()(Particle &p) {
     // Price 2012 eqn. 35
     double omega = calc_omega(p, p_arr, config);
-    double coeff = p.pressure / (omega * std::pow(p.density, 2));
+    double Pr_rho = p.pressure / (omega * std::pow(p.density, 2));
 
     double sum = 0;
     for (int i = 0; i < config.n_part; i++) {
         Particle p_j = p_arr[i];
-        sum += p_j.mass * (p.vel - p_j.vel) * grad_W(p, p_j, p.h);
+
+        double r_ij = p.pos - p_j.pos;
+        double v_ij = p.vel - p_j.vel;
+        double c_s = sound_speed(p);
+        
+        double visc = Pr_rho + 0.5 * artificial_viscosity(p, p_j, r_ij, p.h, c_s);
+
+        // Citation: Private correspondence between Loren-Aguilar and Seal (??)
+        sum += p_j.mass * visc * v_ij * grad_W(p, p_j, p.h);
     }
 
-    p.du_dt = coeff * sum;
+    p.du_dt = sum;
+
+    if (p.id == 42) {
+        std::cout << "du_dt 42 " << p.du_dt << std::endl;
+    }
 }
 
 #pragma endregion

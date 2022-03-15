@@ -82,9 +82,8 @@ double calc_density_dh(const Particle &p, double h, const Particle* p_arr, int n
     return d_sum;
 }
 
-// Interface is a bit different since this isn't called in GSL-based methods but rather in a context
-// with the shared pointer and Config objects etc
 double calc_omega(const Particle &p, ParticleArrayPtr p_arr, Config c) {
+    #ifdef USE_VARIABLE_H
     double o_sum = 0;
     for (int i = 0; i < c.n_part; i++) {
         Particle p_j = p_arr[i];
@@ -96,6 +95,11 @@ double calc_omega(const Particle &p, ParticleArrayPtr p_arr, Config c) {
     o_sum *= dh_drho;
 
     return 1 - o_sum;
+    #endif
+    
+    #ifndef USE_VARIABLE_H
+    return 1;
+    #endif
 }
 
 // Print the current state of the solver. Useful when wanting to see the step-by-step in case it

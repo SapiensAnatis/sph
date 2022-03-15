@@ -83,7 +83,9 @@ struct Particle {
         pos = p.pos;
         vel = p.vel;
         acc = p.acc;
+        h = p.h;
         u = p.u;
+        du_dt = p.du_dt;
         density = p.density;
         pressure = p.pressure;
         type = p.type;
@@ -108,7 +110,8 @@ struct Particle {
                   << " type: " << ParticleTypeNames[p.type] 
                   << " pos: " << p.pos 
                   << " vel: " << p.vel
-                  << " density: " << p.density;
+                  << " density: " << p.density
+                  << " h: " << p.h;
     }
 };
 
