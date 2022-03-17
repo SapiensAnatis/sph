@@ -23,7 +23,7 @@ double Calculator::grad_W(const Particle &p_i, const Particle &p_j, double h) {
     double q = std::abs(r_ij) / h;
     // Rosswog 2009 eq. 25
     // Unsure about the 1/h factor
-    double grad_W = dkernel_dq(q) * r_ij_unit / h; 
+    double grad_W = dkernel_dq(q) * r_ij_unit / h / h; 
     return grad_W;
 }
 

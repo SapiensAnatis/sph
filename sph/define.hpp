@@ -35,11 +35,8 @@ const double GAMMA = 5.0/3.0;
 // Epsilon for root-finding of smoothing length -- used to decide when to declare success
 #define H_EPSILON 1e-4
 
-// Show root-finding errors
-#define H_ERRORS
-// In the event of a root-finding error message, re-run the root-finding algorithm but this time
-// show the individual steps
-// #define H_DEBUG
+// Show root-finding warnings (i.e. when fallback bisection method is used)
+// #define H_WARNINGS
 
 // === setup.cpp ===
 

@@ -31,8 +31,7 @@ double calc_omega(const Particle &p, ParticleArrayPtr p_arr, Config c);
 double rootfind_h(
     const Particle &p, 
     const ParticleArrayPtr p_arr,
-    const Config c,
-    bool show_steps = false
+    const Config c
 );
 
 #endif
