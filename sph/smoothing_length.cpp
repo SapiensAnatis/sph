@@ -22,13 +22,17 @@ struct params
 
 
 // Calculate the derivative of the weighting function with respect to h
+// If W(r, h) = 1/h w(q) then dW(r, h)/dh = -1/h^2 * w(q) + 1/h * dw(q)/dh by product rule
+// dw(q)/dh = dw(q)/dq * dq/dh
 double calc_dw_dh(const Particle &p_1, const Particle &p_2, double h) {
     double r_ij = std::abs(p_1.pos - p_2.pos);
     double q = r_ij / h;
     double dq_dh = -r_ij / std::pow(h, 2);
     double dw_dh = dkernel_dq(q) * dq_dh;
 
-    return dw_dh;
+    double dcapitalW_dh = -1/std::pow(h, 2) * kernel(q) + 1/h * dw_dh;
+
+    return dcapitalW_dh;
 }
 
 // Calculate the derivative of the summation with respect to h
@@ -54,7 +58,6 @@ double calc_omega(const Particle &p, ParticleArrayPtr p_arr, Config c) {
 
     double dh_drho = -p.h / p.density;
     o_sum *= dh_drho;
-
     return 1 - o_sum;
     #endif
     
@@ -153,7 +156,7 @@ double rootfind_h_fallback(
     } while (status == GSL_CONTINUE && iter < H_MAX_ITER);
 
     if (status != GSL_SUCCESS) {
-        std::cout << "[WARN] FALLBACK smoothing length root-finding failed for particle id " << p.id
+        std::cout << "[WARN] Fallback smoothing length root-finding failed for particle id " << p.id
                   << " with status '" << gsl_strerror(status) << "'" << std::endl;
     }
 
@@ -165,8 +168,7 @@ double rootfind_h_fallback(
 double rootfind_h(
     const Particle &p, 
     const ParticleArrayPtr p_arr,
-    const Config c,
-    bool show_steps
+    const Config c
 ) {
     const gsl_root_fdfsolver_type *T;
     gsl_root_fdfsolver *s;
@@ -193,10 +195,6 @@ double rootfind_h(
     T = gsl_root_fdfsolver_newton;
     s = gsl_root_fdfsolver_alloc(T);
     gsl_root_fdfsolver_set(s, &f, x);
-
-    if (show_steps) {
-        printf ("%-5s %10s %10s\n", "iter", "root", "err(est)");
-    }
     
     do {
         iter++;
@@ -204,17 +202,16 @@ double rootfind_h(
         x0 = x;
         x = gsl_root_fdfsolver_root(s);
         status = gsl_root_test_delta(x, x0, 0, H_EPSILON);
-        if (show_steps) {
-            printf ("%5d %10.7f %+10.7f\n", iter, x, x - x0);
-        }
 
     } while (status == GSL_CONTINUE && iter < H_MAX_ITER);
 
     if (status != GSL_SUCCESS) {
+        #ifdef H_WARNINGS
         std::cout << "[WARN] Smoothing length root-finding failed for particle id " << p.id
                   << " with status '" << gsl_strerror(status) << "'" << std::endl;
         
         std::cout << "[WARN] Repeating root-finding process using bisection." << std::endl;
+        #endif
         x = rootfind_h_fallback(p, p_arr, c);
     }
 
