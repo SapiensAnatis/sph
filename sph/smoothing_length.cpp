@@ -30,7 +30,7 @@ double calc_dw_dh(const Particle &p_1, const Particle &p_2, double h) {
     double dq_dh = -r_ij / std::pow(h, 2);
     double dw_dh = dkernel_dq(q) * dq_dh;
 
-    double dcapitalW_dh = -1/std::pow(h, 2) * kernel(q) + 1/h * dw_dh;
+    double dcapitalW_dh = -kernel(q)/std::pow(h, 2) + dw_dh/h;
 
     return dcapitalW_dh;
 }
@@ -41,7 +41,7 @@ double calc_density_dh(const Particle &p, double h, const Particle* p_arr, int n
     for (int i = 0; i < n_part; i++) {
         Particle p_j = *(p_arr + i);
         double dw_dh = calc_dw_dh(p, p_j, h);
-        d_sum -= p_j.mass * dw_dh / std::pow(h, 2);
+        d_sum += p_j.mass * dw_dh;
     }
 
     return d_sum;

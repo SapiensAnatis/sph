@@ -33,7 +33,7 @@ const double GAMMA = 5.0/3.0;
 // Maximum number of iterations for root-finding of smoothing length
 #define H_MAX_ITER 1000
 // Epsilon for root-finding of smoothing length -- used to decide when to declare success
-#define H_EPSILON 1e-4
+#define H_EPSILON 1e-5
 
 // Show root-finding warnings (i.e. when fallback bisection method is used)
 // #define H_WARNINGS
