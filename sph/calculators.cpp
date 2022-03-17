@@ -32,32 +32,16 @@ double Calculator::grad_W(const Particle &p_i, const Particle &p_j, double h) {
 #ifdef USE_VARIABLE_H
 // Variable smoothing length implementation
 void DensityCalculator::operator()(Particle &p) {
-    std::pair<double, double> root_result = rootfind_h(p, p_arr, config);
+    double h = rootfind_h(p, p_arr, config);
 
-    // Retrieve smoothing length (with sanity check)
-    double h = root_result.first;
     if (h < 0) {
-        std::cerr << "[ERROR] Smoothing length root-finding for particle id: " << p.id << 
-                  " returned negative smoothing length: " << h << std::endl;
+        std::cerr << "[ERROR] Smoothing length root-finding for particle id: " << p.id
+                  << " returned negative smoothing length: " << h << std::endl;
         throw new std::logic_error("Root-finding returned negative smoothing length");
     }
 
     p.h = h;
-
-    double density = root_result.second;
-    // Sometimes it finds a solution where density < 0, which is quite bizarre.
-    if (density > 0) {
-        p.density = density;
-    } else {
-        // We can probably resolve this by recalculating
-        std::cout << "[WARN] Smoothing length root-finding for particle id: " << p.id << 
-                  " returned negative density: " << density << std::endl;
-
-        double new_density = calc_density(p, p.h, p_arr.get(), config.n_part);
-
-        std::cout << "[WARN] Recalculated above negative density as " << new_density << std::endl;
-        p.density = new_density;
-    }
+    p.density = calc_density(p, p.h, p_arr.get(), config.n_part);
 }
 #endif
 

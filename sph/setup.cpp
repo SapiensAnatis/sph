@@ -259,7 +259,6 @@ void init_ghost_particles(Config &config, ParticleArrayPtr &p_arr) {
 
     for (int i = 0; i < config.n_part; i++) {
         Particle p = p_arr[i];
-        std::cout << p << std::endl;
 
         if (p == left || p == right)
             // Don't collect the particles themselves

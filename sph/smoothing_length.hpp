@@ -23,13 +23,12 @@ double calc_density(const Particle &p, const double h, const Particle* p_arr, co
 // smoothing lengths.
 double calc_omega(const Particle &p, ParticleArrayPtr p_arr, Config c);
 
-// Given a particle, the particle array, and initial guesses for smoothing length and density, use
-// the GSL rootfinding capabilities to find a solution to the system of equations and return a pair
-// of <smoothing length, density>.
+// Use a derivative based (Newton Raphsen at the moment) rootfinding method to determine a value for
+// h. Returns the estimate for h.
 // show_steps will make the algorithm show every iteration (lots of spam!) but this will always be
-// done irrespective of the value passed if 1) #H_DEBUG is defined in define.hpp or 2) on a repeat
-// run after the solver encountered a warning or error.
-std::pair<double, double> rootfind_h(
+// done irrespective of the value passed on a repeat run after the solver encountered a warning or
+// error when H_DEBUG is defined
+double rootfind_h(
     const Particle &p, 
     const ParticleArrayPtr p_arr,
     const Config c,

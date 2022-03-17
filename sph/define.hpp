@@ -34,16 +34,12 @@ const double GAMMA = 5.0/3.0;
 #define H_MAX_ITER 1000
 // Epsilon for root-finding of smoothing length -- used to decide when to declare success
 #define H_EPSILON 1e-4
+
+// Show root-finding errors
+#define H_ERRORS
 // In the event of a root-finding error message, re-run the root-finding algorithm but this time
 // show the individual steps
 // #define H_DEBUG
-// Show root-finding errors
-#define H_ERRORS
-// Show root-finding warnings ('iteration not making progress' + 'Jacobian not improving solution')
-// These two are split from the above so that other errors can be shown while disabling these, as
-// they appear *a lot* and can flood the console.
-#define H_WARNINGS
-
 
 // === setup.cpp ===
 
@@ -55,6 +51,6 @@ const double GAMMA = 5.0/3.0;
 
 // Don't start the evolution and only generate initial conditions. Useful when debugging setup or
 // root-finding.
-//#define SETUP_ONLY 
+// #define SETUP_ONLY 
 
 #endif
