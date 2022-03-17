@@ -21,8 +21,9 @@ double Calculator::grad_W(const Particle &p_i, const Particle &p_j, double h) {
     double r_ij_unit = (r_ij > 0) ? 1 : -1;
 
     double q = std::abs(r_ij) / h;
-    double grad_W = dkernel_dq(q) * r_ij_unit; // Rosswog 2009 eq. 25
-
+    // Rosswog 2009 eq. 25
+    // Unsure about the 1/h factor
+    double grad_W = dkernel_dq(q) * r_ij_unit / h; 
     return grad_W;
 }
 
@@ -124,6 +125,8 @@ void AccelerationCalculator::operator()(Particle &p_i) {
             double grad_W_i = grad_W(p_i, p_j, p_i.h);
             // Different smoothing length of particle j. Gradient still w.r.t. i
             double grad_W_j = grad_W(p_i, p_j, p_j.h);
+            // Symmetrized smoothing length
+            double grad_W_ij = grad_W(p_i, p_j, (p_i.h + p_j.h)/2);
 
             double Pr_j;
             if (config.pressure_calc == Isothermal)
@@ -139,7 +142,7 @@ void AccelerationCalculator::operator()(Particle &p_i) {
             double visc_ij = artificial_viscosity(p_i, p_j, r_ij, p_i.h, c_s);
 
             // Rosswog 2009 eqn 120 (plus viscosity?) I know it's horrible, I'm sorry
-            double to_add = -p_j.mass * ((grad_W_i * Pr_rho_i) + (grad_W_i * visc_ij) + (grad_W_j * Pr_rho_j));
+            double to_add = -p_j.mass * ((grad_W_i * Pr_rho_i) + (grad_W_ij * visc_ij) + (grad_W_j * Pr_rho_j));
             acc += to_add;
         }
     }
@@ -214,19 +217,16 @@ void EnergyCalculator::operator()(Particle &p) {
 
         double r_ij = p.pos - p_j.pos;
         double v_ij = p.vel - p_j.vel;
+        double h_ij = (p.h + p_j.h)/2;
         double c_s = sound_speed(p);
         
-        double visc = Pr_rho + 0.5 * artificial_viscosity(p, p_j, r_ij, p.h, c_s);
+        double visc = artificial_viscosity(p, p_j, r_ij, h_ij, c_s);
 
-        // Citation: Private correspondence between Loren-Aguilar and Seal (??)
-        sum += p_j.mass * visc * v_ij * grad_W(p, p_j, p.h);
+        sum += Pr_rho * p_j.mass * v_ij * grad_W(p, p_j, h_ij);
+        sum += 0.5 * p_j.mass * v_ij * visc * grad_W(p, p_j, h_ij);
     }
 
     p.du_dt = sum;
-
-    if (p.id == 42) {
-        std::cout << "du_dt 42 " << p.du_dt << std::endl;
-    }
 }
 
 #pragma endregion

@@ -9,7 +9,7 @@ n_part 101
 mass 0.04
 
 # Pressure calculation mode. 0: Isothermal, 1: Adiabatic
-pressure_calc 1
+pressure_calc 0
 
 # Boundary size -- as measured from either side of the origin (so the total width of the space will 
 # be twice this value)

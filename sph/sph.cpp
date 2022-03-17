@@ -51,11 +51,11 @@ void SPHSimulation::step_forward() {
 
         // Half-step velocity
         p.vel += p.acc * (timestep / 2);
+        // Thermal energy
+        p.u += p.du_dt * (timestep / 2);
+
         // Position
         p.pos += p.vel * (timestep);
-        // Thermal energy
-        p.u += p.du_dt * (timestep);
-
         // Recalculate density and density-dependent quantities
         dc(p);
         ac(p);
@@ -63,6 +63,7 @@ void SPHSimulation::step_forward() {
 
         // Remaining half-step velocity
         p.vel += p.acc * (timestep / 2);
+        p.u += p.du_dt * (timestep / 2);
     }
 
     file_write();
