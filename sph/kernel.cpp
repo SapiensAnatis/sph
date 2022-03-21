@@ -39,7 +39,7 @@ double kernel(double q) {
 
 double dkernel_dq(double q) {
     double w;
-    double sigma = 2.0/3.0;
+    double sigma = 1./24.;
 
     if (q < 0) {
         // The kernel is symmetric, so we expect absolute values only!

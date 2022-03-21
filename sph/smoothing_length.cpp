@@ -7,10 +7,6 @@
 #include "define.hpp"
 #include "kernel.hpp"
 
-// The code for root-finding the variable smoothing length is largely based on the Rosenbrock
-// example in the GSL documentation:
-// https://www.gnu.org/software/gsl/doc/html/multiroots.html#examples
-
 // Params for root-finding method
 struct params
 {
@@ -25,15 +21,12 @@ struct params
 // Calculate the derivative of the weighting function with respect to h
 // If W(r, h) = 1/h w(q) then dW(r, h)/dh = -w(q)/h^2 + 1/h * dw(q)/dh by product rule
 // dw(q)/dh = dw(q)/dq * dq/dh
-double calc_dw_dh(const Particle &p_1, const Particle &p_2, double h) {
-    double r_ij = std::abs(p_1.pos - p_2.pos);
-    double q = r_ij / h;
-    double dq_dh = -r_ij / std::pow(h, 2);
-    double dw_dh = dkernel_dq(q) * dq_dh;
+double calc_dW_dh(const Particle &p_1, const Particle &p_2, double h) {
+    double r_ij = p_1.pos - p_2.pos;
+    double q = std::abs(r_ij) / h;
 
-    double dcapitalW_dh = -kernel(q)/std::pow(h, 2) + dw_dh/h;
-
-    return dcapitalW_dh;
+    // PHANTOM paper eq. 16, adapted for 1D where W(r,h) = 1/h w(q) instead of 1/h^3 w(q)
+    return (kernel(q) + q*dkernel_dq(q)) / (-std::pow(h, 2));
 }
 
 // Calculate the derivative of the summation with respect to h
@@ -41,8 +34,8 @@ double calc_density_dh(const Particle &p, double h, const Particle* p_arr, int n
     double d_sum = 0;
     for (int i = 0; i < n_part; i++) {
         Particle p_j = *(p_arr + i);
-        double dw_dh = calc_dw_dh(p, p_j, h);
-        d_sum += p_j.mass * dw_dh;
+        double dW_dh = calc_dW_dh(p, p_j, h);
+        d_sum += p_j.mass * dW_dh;
     }
 
     return d_sum;
@@ -52,11 +45,20 @@ double calc_omega(const Particle &p, ParticleArrayPtr p_arr, Config c) {
     #ifdef USE_VARIABLE_H
     double o_sum = 0;
     for (int i = 0; i < c.n_part; i++) {
+        if (p.id == i)
+            continue;
+
         Particle p_j = p_arr[i];
-        double dw_dh = calc_dw_dh(p, p_j, p.h);
-        o_sum += p_j.mass * dw_dh;
+
+        double dW_dh = calc_dW_dh(p, p_j, p.h);
+        o_sum += p_j.mass * dW_dh;
     }
 
+
+    // THE ISSUE: Price eq. 27 gives omega is 1 - dh/drho * sum(m_b * dW/dh). But isn't sum(m_b *
+    // dW/dh) equal to drho/dh? Thus dh/rho * drho/dh = 1, and 1-that = very small values that are
+    // then used in the denominator of pressure expressions in acceleration, leading to 10^16
+    // acceleration.
     double dh_drho = -p.h / p.density;
     o_sum *= dh_drho;
     return 1 - o_sum;
@@ -144,7 +146,6 @@ double rootfind_h_fallback(
 
     T = gsl_root_fsolver_bisection;
     s = gsl_root_fsolver_alloc(T);
-    gsl_set_error_handler_off();
     status = gsl_root_fsolver_set(s, &f, x_lo, x_hi);
 
     do {

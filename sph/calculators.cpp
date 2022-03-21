@@ -23,7 +23,7 @@ double Calculator::grad_W(const Particle &p_i, const Particle &p_j, double h) {
     double q = std::abs(r_ij) / h;
     // Rosswog 2009 eq. 25
     // Unsure about the 1/h factor
-    double grad_W = (dkernel_dq(q) / h) * r_ij_unit;
+    double grad_W = (dkernel_dq(q) / std::pow(h, 2)) * r_ij_unit;
     return grad_W;
 }
 
@@ -92,7 +92,8 @@ void AccelerationCalculator::operator()(Particle &p_i) {
     // Keep track of pressures as they can be used to verify the analytical solution
     p_i.pressure = Pr_i;
 
-    double Pr_rho_i = Pr_i / std::pow(p_i.density, 2) / calc_omega(p_i, p_arr, config);
+    double omega_i = calc_omega(p_i, p_arr, config);
+    double Pr_rho_i = Pr_i / std::pow(p_i.density, 2) / omega_i;
 
     double acc = 0;
 
@@ -105,12 +106,13 @@ void AccelerationCalculator::operator()(Particle &p_i) {
 
         if (p_j != p_i) {
             double r_ij = p_i.pos - p_j.pos;
+            double h_ij = (p_i.h + p_j.h) / 2;
 
             double grad_W_i = grad_W(p_i, p_j, p_i.h);
             // Different smoothing length of particle j. Gradient still w.r.t. i
             double grad_W_j = grad_W(p_i, p_j, p_j.h);
             // Symmetrized smoothing length
-            double grad_W_ij = grad_W(p_i, p_j, (p_i.h + p_j.h)/2);
+            double grad_W_ij = grad_W(p_i, p_j, h_ij);
 
             double Pr_j;
             if (config.pressure_calc == Isothermal)
@@ -120,13 +122,13 @@ void AccelerationCalculator::operator()(Particle &p_i) {
             else
                 throw std::logic_error("Unknown pressure calculation mode!");
 
+            double omega_j = calc_omega(p_j, p_arr, config);
             double Pr_rho_j = Pr_j / std::pow(p_j.density, 2) / calc_omega(p_j, p_arr, config);
 
-            // TODO: Figure out how artificial viscosity fits into this equation!
-            double visc_ij = artificial_viscosity(p_i, p_j, r_ij, p_i.h, c_s);
+            double visc_ij = artificial_viscosity(p_i, p_j, r_ij, h_ij, c_s);
 
             // Rosswog 2009 eqn 120 (plus viscosity?) I know it's horrible, I'm sorry
-            double to_add = -p_j.mass * ((grad_W_i * Pr_rho_i) + (grad_W_ij * visc_ij) + (grad_W_j * Pr_rho_j));
+            double to_add = -p_j.mass * ((grad_W_i * Pr_rho_i) + (grad_W_j * Pr_rho_j) + (grad_W_ij * visc_ij));
             acc += to_add;
         }
     }
