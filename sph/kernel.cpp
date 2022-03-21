@@ -17,8 +17,8 @@ double kernel(double q) {
 
     if (q < 0) {
         // The kernel is symmetric, so we expect absolute values only!
-        std::cerr << "[ERROR] Illegal attempt to evaluate kernel at q = " << q << std::endl;
-        throw std::invalid_argument("Negative argument given to kernel!");
+        // std::cerr << "[ERROR] Illegal attempt to evaluate kernel at q = " << q << std::endl;
+        // throw std::invalid_argument("Negative argument given to kernel!");
     }
 
     // M_5 quartic Schoenberg B-spline, as detailed in Price (2012) pg. 3.
@@ -43,8 +43,8 @@ double dkernel_dq(double q) {
 
     if (q < 0) {
         // The kernel is symmetric, so we expect absolute values only!
-        std::cerr << "[ERROR] Illegal attempt to evaluate kernel derivative at q = " << q << std::endl;
-        throw std::invalid_argument("Negative argument given to kernel!");
+        // std::cerr << "[ERROR] Illegal attempt to evaluate kernel derivative at q = " << q << std::endl;
+        // throw std::invalid_argument("Negative argument given to kernel!");
     }
 
     // Derivative of kernel(), analytically

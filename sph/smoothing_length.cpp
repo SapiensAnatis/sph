@@ -45,10 +45,27 @@ double calc_omega(const Particle &p, ParticleArrayPtr p_arr, Config c) {
     #ifdef USE_VARIABLE_H
     double o_sum = 0;
     for (int i = 0; i < c.n_part; i++) {
-        if (p.id == i)
-            continue;
-
         Particle p_j = p_arr[i];
+
+        double dW_dh = calc_dW_dh(p, p_j, p.h);
+        o_sum += p_j.mass * dW_dh;
+    }
+
+    double dh_drho = -p.h / p.density;
+    o_sum *= dh_drho;
+    return 1 - o_sum;
+    #endif
+    
+    #ifndef USE_VARIABLE_H
+    return 1;
+    #endif
+}
+
+double calc_omega(const Particle &p, const Particle* p_arr, int n_part) {
+    #ifdef USE_VARIABLE_H
+    double o_sum = 0;
+    for (int i = 0; i < n_part; i++) {
+        Particle p_j = *(p_arr + i);
 
         double dW_dh = calc_dW_dh(p, p_j, p.h);
         o_sum += p_j.mass * dW_dh;
@@ -92,10 +109,13 @@ double smoothing_f(double x, void* params) {
     double h_fact = ((struct params*)params)->h_fact;
 
     // Calculate density via sum over other particles
-    double density = calc_density(p, x, p_arr, n_part);
+    double density_sum = calc_density(p, x, p_arr, n_part);
+    // Calculate density via expression (Price 2018 eq. 10)
+    double density_exp = p.mass * h_fact / x;
 
-    // Smoothing length equation: h - h_fact(m/rho) = 0
-    return x - h_fact*(p.mass / density);
+    // Smoothing length equation (Price 2018 eq. 9)
+    return density_sum - density_exp;
+    
 }
 
 // Get derivative of smoothing length equation with respect to h
@@ -106,10 +126,11 @@ double smoothing_df(double x, void *params) {
     int n_part = ((struct params*)params)->n_part;
     double h_fact = ((struct params*)params)->h_fact;
 
-    double drho_dh = calc_density_dh(p, x, p_arr, n_part);
+    // Price 2018 eq. 12
+    double drho_dh_sum = calc_density_dh(p, x, p_arr, n_part);
+    double drho_dh_exp = -p.mass * h_fact / std::pow(x, 2);
 
-    // d[h - h_fact(m/rho)]/d[h]
-    return 1 + h_fact * p.mass / std::pow(drho_dh, 2);
+    return drho_dh_sum - drho_dh_exp;
 }
 
 void smoothing_fdf(double x, void *params, double *y, double *dy) {
@@ -128,7 +149,7 @@ double rootfind_h_fallback(
     const gsl_root_fsolver_type *T;
     gsl_root_fsolver *s;
 
-    double x = 0;
+    double x = CALC_EPSILON;
     double x_lo = CALC_EPSILON; 
     double x_hi = 2*c.limit;
 
