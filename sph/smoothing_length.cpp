@@ -156,7 +156,7 @@ double rootfind_h_fallback(
         x_hi = gsl_root_fsolver_x_upper(s);
 
         status = gsl_root_test_interval(x_lo, x_hi, 0, H_EPSILON);
-    } while (status == GSL_CONTINUE && iter < H_MAX_ITER);
+    } while (status == GSL_CONTINUE && iter < H_MAX_ITER_BS);
 
     if (status != GSL_SUCCESS) {
         std::cout << "[WARN] Fallback smoothing length root-finding failed for particle id " << p.id
@@ -207,7 +207,7 @@ double rootfind_h(
         x = gsl_root_fdfsolver_root(s);
         status = gsl_root_test_delta(x, x0, 0, H_EPSILON);
 
-    } while (status == GSL_CONTINUE && iter < H_MAX_ITER);
+    } while (status == GSL_CONTINUE && iter < H_MAX_ITER_NR);
 
     if (status != GSL_SUCCESS) {
         #ifdef H_WARNINGS

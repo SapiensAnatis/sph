@@ -30,8 +30,10 @@ const double GAMMA = 5.0/3.0;
 
 // === smoothing_length.cpp ===
 
-// Maximum number of iterations for root-finding of smoothing length
-#define H_MAX_ITER 1000
+// Maximum number of iterations for root-finding of smoothing length for Newton-Raphsen
+#define H_MAX_ITER_NR 10
+// Maximum number of iterations for root-finding of smoothing length for fallback bisection
+#define H_MAX_ITER_BS 1000
 // Epsilon for root-finding of smoothing length -- used to decide when to declare success
 #define H_EPSILON 1e-5
 
