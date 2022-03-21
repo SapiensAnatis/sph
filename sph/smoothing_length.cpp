@@ -1,5 +1,6 @@
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_roots.h>
+#include <gsl/gsl_errno.h>
 #include <iostream>
 
 #include "smoothing_length.hpp"
@@ -22,7 +23,7 @@ struct params
 
 
 // Calculate the derivative of the weighting function with respect to h
-// If W(r, h) = 1/h w(q) then dW(r, h)/dh = -1/h^2 * w(q) + 1/h * dw(q)/dh by product rule
+// If W(r, h) = 1/h w(q) then dW(r, h)/dh = -w(q)/h^2 + 1/h * dw(q)/dh by product rule
 // dw(q)/dh = dw(q)/dq * dq/dh
 double calc_dw_dh(const Particle &p_1, const Particle &p_2, double h) {
     double r_ij = std::abs(p_1.pos - p_2.pos);
@@ -127,7 +128,7 @@ double rootfind_h_fallback(
 
     double x = 0;
     double x_lo = CALC_EPSILON; 
-    double x_hi = c.limit;
+    double x_hi = 2*c.limit;
 
     struct params param = {
         &p,
@@ -143,7 +144,8 @@ double rootfind_h_fallback(
 
     T = gsl_root_fsolver_bisection;
     s = gsl_root_fsolver_alloc(T);
-    gsl_root_fsolver_set(s, &f, x_lo, x_hi);
+    gsl_set_error_handler_off();
+    status = gsl_root_fsolver_set(s, &f, x_lo, x_hi);
 
     do {
         iter++;

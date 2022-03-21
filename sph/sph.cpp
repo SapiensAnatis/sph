@@ -76,7 +76,7 @@ void SPHSimulation::file_write() {
     outstream << "# Column definitions:" << std::endl;
     outstream << "# Particle ID / Type / Smoothing length / Density / Pressure / Acceleration / Velocity / Position / Thermal energy" << std::endl;
     outstream << "# Aligned definition 'tags' for easier reading:" << std::endl;
-    outstream << "# ID    TYPE     H        DENSITY  PRESS    ACCEL     VEL       POS       U" << std::endl;
+    outstream << "# ID    TYPE     H          DENSITY  PRESS    ACCEL     VEL       POS       U" << std::endl;
 
     for (int i = 0; i < config.n_part; i++) {
         Particle& p = p_arr[i];
@@ -88,7 +88,7 @@ void SPHSimulation::file_write() {
         
         char buffer[256];
         sprintf(buffer, 
-                "%4d    %s    %3.3f    %3.3f    %3.3f    %+3.3f    %+3.3f    %+3.3f    %3.3f\n", 
+                "%4d    %s    %3.5f    %3.3f    %3.3f    %+3.3f    %+3.3f    %+3.3f    %3.3f\n", 
                 p.id, ParticleTypeNames[p.type], p.h, p.density, p.pressure, p.acc, p.vel, p.pos, p.u);
         outstream << buffer;
     }
