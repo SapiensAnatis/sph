@@ -24,7 +24,7 @@ ConfigReader::ConfigReader(std::istream &config_stream) {
     set_property(config.pressure_calc, config_map, "pressure_calc");
     set_property(config.limit, config_map, "limit");
     set_property(config.v_0, config_map, "v_0");
-    set_property(config.smoothing_length, config_map, "smoothing_length");
+    set_property(config.h_factor, config_map, "h_factor");
     set_property(config.t_i, config_map, "t_i");
 
 }

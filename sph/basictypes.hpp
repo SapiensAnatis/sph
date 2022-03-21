@@ -26,7 +26,7 @@ struct Config {
     PressureCalc pressure_calc;
     double limit;
     double v_0;
-    double smoothing_length;
+    double h_factor;
     double t_i;
 };
 

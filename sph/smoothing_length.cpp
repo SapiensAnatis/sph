@@ -13,7 +13,7 @@ struct params
     const Particle* p; // Particle in question
     const Particle* p_arr; // Pointer to array of particles
     int n_part; // Length of above array
-    double eta; // Smoothing length parameter; see Price 2012 eq. 10
+    double h_fact; // Smoothing length parameter; see Price 2012 eq. 10
 };
 
 
@@ -89,13 +89,13 @@ double smoothing_f(double x, void* params) {
     const Particle p = *((struct params*)params)->p;
     const Particle* p_arr = ((struct params*)params)->p_arr;
     int n_part = ((struct params*)params)->n_part;
-    double eta = ((struct params*)params)->eta;
+    double h_fact = ((struct params*)params)->h_fact;
 
     // Calculate density via sum over other particles
     double density = calc_density(p, x, p_arr, n_part);
 
-    // Smoothing length equation: h - eta(m/rho) = 0
-    return x - eta*(p.mass / density);
+    // Smoothing length equation: h - h_fact(m/rho) = 0
+    return x - h_fact*(p.mass / density);
 }
 
 // Get derivative of smoothing length equation with respect to h
@@ -104,12 +104,12 @@ double smoothing_df(double x, void *params) {
     const Particle p = *((struct params*)params)->p;
     const Particle* p_arr = ((struct params*)params)->p_arr;
     int n_part = ((struct params*)params)->n_part;
-    double eta = ((struct params*)params)->eta;
+    double h_fact = ((struct params*)params)->h_fact;
 
     double drho_dh = calc_density_dh(p, x, p_arr, n_part);
 
-    // d[h - eta(m/rho)]/d[h]
-    return 1 + eta * p.mass / std::pow(drho_dh, 2);
+    // d[h - h_fact(m/rho)]/d[h]
+    return 1 + h_fact * p.mass / std::pow(drho_dh, 2);
 }
 
 void smoothing_fdf(double x, void *params, double *y, double *dy) {
@@ -136,7 +136,7 @@ double rootfind_h_fallback(
         &p,
         p_arr.get(),
         c.n_part,
-        c.smoothing_length
+        c.h_factor
     };
 
     gsl_function f = {
@@ -168,6 +168,7 @@ double rootfind_h_fallback(
 
 }
 
+// TODO: replace this entire thing with the other way in the PHANTOM paper?
 double rootfind_h(
     const Particle &p, 
     const ParticleArrayPtr p_arr,
@@ -183,7 +184,7 @@ double rootfind_h(
         &p,
         p_arr.get(),
         c.n_part,
-        c.smoothing_length
+        c.h_factor
     };
 
     gsl_function_fdf f = {

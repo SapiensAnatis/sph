@@ -9,7 +9,7 @@ n_part 101
 mass 0.04
 
 # Pressure calculation mode. 0: Isothermal, 1: Adiabatic
-pressure_calc 0
+pressure_calc 1
 
 # Boundary size -- as measured from either side of the origin (so the total width of the space will 
 # be twice this value)
@@ -19,9 +19,9 @@ limit 2
 # pressure calculation is enabled; 
 v_0 1
 
-# Smoothing length in terms of mean particle spacing (a.k.a. eta parameter, see Price 2012 eq. 10)
-# The number of neighbours for each particle is approximately four times this value
-smoothing_length 3
+# Coefficient to use in h-density rootfinding relation (see Price 2012 eq. 10, Price 2018 eq. 6)
+# The number of neighbours for each particle is approximately 2 * kernel radius (2.5) * this value
+h_factor 2
 
 # The initial timestep to use for the simulation
 t_i 0.005
