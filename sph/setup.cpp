@@ -180,8 +180,17 @@ void init_particles(Config &config, ParticleArrayPtr &p_arr)
 
     // In the adiabatic case, we must first calculate accelerations so that we can set the
     // initial velocitites of particles to the adiabatic sound speed, which depends on pressure.
+    auto dc = DensityCalculator(config, p_arr);
+    auto ac = AccelerationCalculator(config, p_arr);
+
     if (config.pressure_calc == Adiabatic) {
-        auto ac = AccelerationCalculator(config, p_arr);
+        // Calculate sound speed
+        // Requires: calculating pressure and density. Calculating pressure requires calculating
+        // acceleration.
+        for (int i = 0; i < config.n_part; i++) {
+            dc(p_arr[i]);
+        }
+
         for (int i = 0; i < config.n_part; i++) {
             ac(p_arr[i]);
             double c_s = ac.sound_speed(p_arr[i]);
@@ -197,18 +206,18 @@ void init_particles(Config &config, ParticleArrayPtr &p_arr)
     std::cout << "[INFO] Calculating initial conditions..." << std::endl;
 
     // Calculate conditions at T = 0
-    auto dc2 = DensityCalculator(config, p_arr);
-    auto ac2 = AccelerationCalculator(config, p_arr);
-    auto ec2 = EnergyCalculator(config, p_arr);
+    dc.update(config, p_arr);
+    ac.update(config, p_arr);
+    auto ec = EnergyCalculator(config, p_arr);
 
     for (int i = 0; i < config.n_part; i++) {
-        dc2(p_arr[i]);
+        dc(p_arr[i]);
     }
     
     // Once density is defined for all particles, can calculate derived quantities
     for (int i = 0; i < config.n_part; i++) {
-        ac2(p_arr[i]);
-        ec2(p_arr[i]);
+        ac(p_arr[i]);
+        ec(p_arr[i]);
     }
 
 }
