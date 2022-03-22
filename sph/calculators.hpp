@@ -20,15 +20,21 @@
 class Calculator {
     public:
         // ctor
-        Calculator(const Config &c, ParticleArrayPtr p_arr_ptr) 
+        Calculator(const Config c, const ParticleArrayPtr p_arr_ptr) 
             : config(c), p_arr(p_arr_ptr) {}
         // Calculation function
         virtual void operator()(Particle &p) {
             throw new std::logic_error("Attempt to call un-implemented operator() function!");
         }
+        // Update function: supply new pointer and config (due to ghost particle reinitialization
+        // reallocating the array and changing config.n_part)
+        void update(Config c, ParticleArrayPtr p_arr_ptr) {
+            config = c;
+            p_arr.swap(p_arr_ptr);
+        }
     protected:
-        const Config config;
-        const ParticleArrayPtr p_arr;
+        Config config;
+        ParticleArrayPtr p_arr;
 
         // Calculate the gradient of W between p_i, p_j with respect to the coordinates of p_i.
         // Used in acceleration and energy calculators.

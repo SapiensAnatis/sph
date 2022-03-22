@@ -38,7 +38,7 @@ const double GAMMA = 5.0/3.0;
 #define H_EPSILON 1e-4
 
 // Show root-finding warnings (i.e. when fallback bisection method is used)
-// #define H_WARNINGS
+#define H_WARNINGS
 
 // === setup.cpp ===
 

@@ -9,6 +9,8 @@
 #ifndef kernel_hpp // Include guard
 #define kernel_hpp
 
+const double KERNEL_RADIUS = 2.5;
+
 double kernel(double q);
 double dkernel_dq(double q);
 

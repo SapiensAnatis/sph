@@ -6,13 +6,13 @@
  */
 
 #include <iostream>
-#include <random>
 #include <memory>
 #include <algorithm>
-#include <string.h>
 
-#include "define.hpp"
 #include "setup.hpp"
+#include "define.hpp"
+#include "basictypes.hpp"
+#include "ghost_particles.hpp"
 
 #pragma region ConfigParsing
 
@@ -27,6 +27,8 @@ ConfigReader::ConfigReader(std::istream &config_stream) {
     set_property(config.h_factor, config_map, "h_factor");
     set_property(config.t_i, config_map, "t_i");
 
+    // 'Runtime' properties
+    config.n_ghost = 0;
 }
 
 Config ConfigReader::GetConfig() {
@@ -136,24 +138,18 @@ void init_particles(Config &config, ParticleArrayPtr &p_arr)
 {
     double max_x = config.limit;
     double min_x = -max_x;
+    double spacing = (max_x - min_x) / (config.n_part-1);
 
-    #ifndef UNIFORM_DIST
-        // Ensure randomness of position generation
-        auto eng = std::default_random_engine(std::random_device{}());
-        auto rand = std::uniform_real_distribution<double>(min_x, max_x);
-    #endif
+    // Don't put particles directly on the boundaries, as this becomes problematic
+    // when trying to reflect them around the boundary to create ghost particles.
+    max_x -= spacing / 2;
+    min_x += spacing / 2;
 
     for (int i = 0; i < config.n_part; i++) {
         Particle& p  = p_arr[i];
 
-        #ifndef UNIFORM_DIST
-            double pos = rand(eng);
-        #endif
-
-        #ifdef UNIFORM_DIST
-            double spacing = (max_x - min_x) / (config.n_part-1);
-            double pos = min_x + spacing * i;
-        #endif
+        double spacing = (max_x - min_x) / (config.n_part-1);
+        double pos = min_x + spacing * (i);
         
         // +v_0 if pos negative, -v_0 otherwise
         double vel = (pos < 0) ? config.v_0 : -config.v_0;
@@ -169,168 +165,52 @@ void init_particles(Config &config, ParticleArrayPtr &p_arr)
         if (config.pressure_calc == Adiabatic)
             p.u = 1/(GAMMA - 1);
 
-        // Set constant h
+        
+        #ifdef USE_VARIABLE_H
+        // Set variable h to a guess. Don't actually do the rootfinding, because that leads to the
+        // edge particles having higher smoothing lengths and influences the ghost particle setup.
+        p.h = config.h_factor * spacing;
+        #endif
+        
         #ifndef USE_VARIABLE_H
+        // Set constant h
         p.h = CONSTANT_H;
         #endif
     }
 
-    
-    init_ghost_particles(config, p_arr);
-
-    // Calculate conditions at T = 0. We are doing this here rather than in SPHSimulation as the
-    // adiabatic test requires initial velocities are set to sound speed, which requires knowing
-    // the pressures and densities, which requires calculating initial acceleration.
-
-    // Create a new DensityCalculator with new array reference from ghost particle reallocation
-    auto dc = DensityCalculator(config, p_arr);
-    auto ac = AccelerationCalculator(config, p_arr);
-    auto ec = EnergyCalculator(config, p_arr);
-
-    for (int i = 0; i < config.n_part; i++) {
-        dc(p_arr[i]);
-    }
-
-    for (int i = 0; i < config.n_part; i++) {
-        ac(p_arr[i]);
-    }
-
-    // Now that pressures are defined (by AccelerationCalculator) we can overwrite initial
-    // velocities for the adiabatic test
+    // In the adiabatic case, we must first calculate accelerations so that we can set the
+    // initial velocitites of particles to the adiabatic sound speed, which depends on pressure.
     if (config.pressure_calc == Adiabatic) {
+        auto ac = AccelerationCalculator(config, p_arr);
         for (int i = 0; i < config.n_part; i++) {
+            ac(p_arr[i]);
             double c_s = ac.sound_speed(p_arr[i]);
             p_arr[i].vel = (p_arr[i].pos < 0) ? c_s : -c_s;
         }
     }
+    
+    // Next step: setup ghost particles. 
+    setup_ghost_particles(p_arr, config);
 
     std::cout << "[INFO] Initialized " << config.n_ghost << " ghost particles." << std::endl;
     std::cout << "[INFO] Initialized " << config.n_part << " total particles." << std::endl;
-}
+    std::cout << "[INFO] Calculating initial conditions..." << std::endl;
 
-void init_ghost_particles(Config &config, ParticleArrayPtr &p_arr) {
-    // Initialize ghost particles. This is not the 'proper' way of doing it, which is based on
-    // neighbour trees etc., but essentially the way it works is: For the leftmost and rightmost
-    // particle in the array, collect all the particles within a smoothing length and duplicate
-    // them, then rotate them 180 about the selected particle, placing them outside of the boundary.
-    // They are then given opposite velocities to the selected particle to stop it from going out
-    // of bounds.
-
-    // Seperate function as the scope of init_particles is cluttered with variable names I want to
-    // use and it's big enough already
-
-    // Search for boundary particles. If UNIFORM_DIST is defined, we could just immediately pick
-    // the indices 0 and n_part, but let's be universal for the sake of it!
-    double min_x = 0;
-    double min_x_idx;
-
-    double max_x = 0;
-    double max_x_idx;
-
-    // Just going through keeping track of what the lowest/highest positions seen so far is, and
-    // their corresponding indices
-    for (int i = 0; i < config.n_part; i++) {
-        Particle& p = p_arr[i];
-        
-        if (p.pos < min_x) {
-            min_x_idx = i;
-            min_x = p.pos;
-        } else if (p.pos > max_x) {
-            max_x_idx = i;
-            max_x = p.pos;
-        }
-    }
-
-    Particle& left = p_arr[min_x_idx];
-    Particle& right = p_arr[max_x_idx];
-
-    // Collect neighbours of left and right
-    std::vector<Particle> l_neighbours; 
-    std::vector<Particle> r_neighbours;
-
-    #ifdef USE_VARIABLE_H
-    // To know what particles are the neighbours now that we have variable smoothing length, we
-    // first need to calculate the density of left and right, since that will set their smoothing
-    // lengths.
-    auto dc = DensityCalculator(config, p_arr);
-    dc(left);
-    dc(right);
-    #endif
+    // Calculate conditions at T = 0
+    auto dc2 = DensityCalculator(config, p_arr);
+    auto ac2 = AccelerationCalculator(config, p_arr);
+    auto ec2 = EnergyCalculator(config, p_arr);
 
     for (int i = 0; i < config.n_part; i++) {
-        Particle p = p_arr[i];
-
-        if (p == left || p == right)
-            // Don't collect the particles themselves
-            continue;
-
-        double l_dist = std::abs(p.pos - left.pos);
-        double r_dist = std::abs(p.pos - right.pos);
-
-        // Creates copies of p, since the vector is of non-reference Particle. 2*smoothing length
-        // as that is the limit of the kernel, so ensures that edge particles have full neighbours
-        if (l_dist < left.h * 2)
-            l_neighbours.push_back(p);
-        else if (r_dist < right.h * 2)
-            r_neighbours.push_back(p);   
+        dc2(p_arr[i]);
+    }
+    
+    // Once density is defined for all particles, can calculate derived quantities
+    for (int i = 0; i < config.n_part; i++) {
+        ac2(p_arr[i]);
+        ec2(p_arr[i]);
     }
 
-
-
-    // Set up neighbours (mirror around edges & set velocity and type)
-    for (Particle &p : l_neighbours) {
-        // Add twice the vector joining the neighbour and origin particle to the neighbour
-        // particle's position
-        double vec = left.pos - p.pos;
-        p.pos += 2*vec;
-        p.vel *= -1;
-        p.type = Ghost;
-    }
-
-    for (Particle &p : r_neighbours) {
-        double vec = right.pos - p.pos;
-        p.pos += 2*vec;
-        p.vel *= -1;
-        p.type = Ghost;
-    }
-
-    // Before adding to array, dynamically reallocate. The array is already full with n_part, but we
-    // can now grow it because we know how many ghost particles are about to be added
-
-    // It's a bit easier to work with raw pointers when copying with data, so we switch back to
-    // shared pointers later.
-    int n_ghost = l_neighbours.size() + r_neighbours.size();
-    config.n_ghost = n_ghost;
-
-    Particle* old_ptr = p_arr.get();
-    Particle* new_ptr;
-
-    try {
-        new_ptr = new Particle[config.n_part + n_ghost];
-    } catch (std::bad_alloc &e) {
-        size_t bytes = (config.n_part + n_ghost) * sizeof(Particle);
-        std::cerr << "[ERROR] Failed to reallocate array for creation of ghost particles!" << std::endl;
-        std::cerr << "[ERROR] Attempted to allocate " << bytes << " bytes for " << config.n_part
-                  << " particles and " << n_ghost << " ghost particles" << std::endl;
-        exit(1);
-    }
-
-    // Copy over old data
-    std::copy(old_ptr, old_ptr + config.n_part, new_ptr);
-
-    // Reinitialize shared ptr. This will free old_ptr as the smart pointer detects it is no longer
-    // in use.
-    p_arr.reset(new_ptr);
-    // Add to end of array
-    std::copy(l_neighbours.begin(), l_neighbours.end(), p_arr.get() + config.n_part);
-
-    // Imperative to update n_part, both for copy below and so that ghost particles are not
-    // ignored in subsequent iteration e.g. calculators.cpp.
-    config.n_part += l_neighbours.size();
-
-    std::copy(r_neighbours.begin(), r_neighbours.end(), p_arr.get() + config.n_part);
-
-    config.n_part += r_neighbours.size();
 }
 
 #pragma endregion

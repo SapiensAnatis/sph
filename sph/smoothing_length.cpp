@@ -197,10 +197,15 @@ double rootfind_h(
     // Use previous smoothing length as a first guess for the iteration
     // That is, if it's not zero due to us currently setting up the initial smoothing lengths!
     if (p.h > CALC_EPSILON) {
-        x0, x = p.h;
+        x0 = p.h;
+        x = p.h;
     } else {
-        x0, x = 0.1;
+        double mean_p_spacing = 2*c.limit / (c.n_part-1);
+        x0 = c.h_factor * mean_p_spacing;
+        x = c.h_factor * mean_p_spacing;
     }
+
+    
 
 
     T = gsl_root_fdfsolver_newton;

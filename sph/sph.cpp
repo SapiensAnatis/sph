@@ -9,6 +9,7 @@
 
 #include "sph.hpp"
 #include "define.hpp"
+#include "ghost_particles.hpp"
 
 void SPHSimulation::start(double end_time) {
     // First calculate density and acceleration for all particles at t = 0
@@ -56,6 +57,31 @@ void SPHSimulation::step_forward() {
 
         // Position
         p.pos += p.vel * (timestep);
+    }
+
+    /*
+    std::cout << "p_arr pre-update: " << p_arr << std::endl;
+    std::cout << "n_part pre-update: " << config.n_part << std::endl;
+    */
+
+    // Now that we've moved the particles, reinitialize ghost particles
+    setup_ghost_particles(p_arr, config);
+    // Update calculators
+    dc.update(config, p_arr);
+    ac.update(config, p_arr);
+    ec.update(config, p_arr);
+
+    /*
+    std::cout << "p_arr post-update: " << p_arr << std::endl;
+    std::cout << "n_part post-update: " << config.n_part << std::endl;
+    */
+
+    // Perform the final half of the integration
+    for (int i = 0; i < config.n_part; i++) {
+        Particle& p = p_arr[i];
+        if (p.type == Ghost) 
+            continue;
+
         // Recalculate density and density-dependent quantities
         dc(p);
         ac(p);

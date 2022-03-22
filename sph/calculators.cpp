@@ -96,9 +96,9 @@ void AccelerationCalculator::operator()(Particle &p_i) {
 
     for (int i = 0; i < config.n_part; i++) {
         Particle &p_j = p_arr[i];
-        ensure_nonzero_density(p_j);
 
         if (p_j != p_i) {
+            ensure_nonzero_density(p_j);
             double r_ij = p_i.pos - p_j.pos;
             double h_ij = (p_i.h + p_j.h) / 2;
 
@@ -117,7 +117,7 @@ void AccelerationCalculator::operator()(Particle &p_i) {
                 throw std::logic_error("Unknown pressure calculation mode!");
 
             double omega_j = calc_omega(p_j, p_arr, config);
-            double Pr_rho_j = Pr_j / std::pow(p_j.density, 2) / calc_omega(p_j, p_arr, config);
+            double Pr_rho_j = Pr_j / std::pow(p_j.density, 2) / omega_j;
 
             double visc_ij = artificial_viscosity(p_i, p_j, r_ij, h_ij, c_s);
 
@@ -176,7 +176,6 @@ void AccelerationCalculator::ensure_nonzero_density(const Particle &p) {
     if (p.density < CALC_EPSILON) {
         std::cerr << "[ERROR] Particle had density less than epsilon " << CALC_EPSILON << std::endl;
         std::cerr << "[ERROR] Particle id: " << p.id << " has density: " << p.density << std::endl;
-        // std::cerr << "[ERROR] Current time " << No way of accessing that, oops!
 
         throw new std::logic_error("Particle had density less than epsilon!");
     }
