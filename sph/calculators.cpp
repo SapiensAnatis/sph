@@ -21,8 +21,8 @@ double Calculator::grad_W(const Particle &p_i, const Particle &p_j, double h) {
     double r_ij_unit = (r_ij > 0) ? 1 : -1;
 
     double q = std::abs(r_ij) / h;
-    // Rosswog 2009 eq. 25
-    // Unsure about the 1/h factor
+    // Rosswog 2009 eq. 25 
+    // Unsure about the 1/h^2 factor
     double grad_W = (dkernel_dq(q) / std::pow(h, 2)) * r_ij_unit;
     return grad_W;
 }
@@ -34,6 +34,8 @@ double Calculator::grad_W(const Particle &p_i, const Particle &p_j, double h) {
 void DensityCalculator::operator()(Particle &p) {
     double h = rootfind_h(p, p_arr, config);
 
+    // This used to happen sometimes before I changed the algorithm to be more sensible,
+    // but I don't see any reason to remove it!
     if (h < 0) {
         std::cerr << "[ERROR] Smoothing length root-finding for particle id: " << p.id
                   << " returned negative smoothing length: " << h << std::endl;
@@ -46,17 +48,9 @@ void DensityCalculator::operator()(Particle &p) {
 #endif
 
 #ifndef USE_VARIABLE_H
+
 void DensityCalculator::operator()(Particle &p) {
-    double d_sum = 0;
-
-    for (int i = 0; i < config.n_part; i++) {
-        Particle p_j = p_arr[i];
-        double q = std::abs(p.pos - p_j.pos) / CONSTANT_H;
-        double w = kernel(q);
-
-        d_sum += p.mass * (w / CONSTANT_H);
-    }
-
+    double d_sum = calc_density(p, p.h, p_arr.get(), config.n_part);
     p.density = d_sum;
 }
 

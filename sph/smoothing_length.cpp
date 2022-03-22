@@ -22,6 +22,16 @@ struct params
 // If W(r, h) = 1/h w(q) then dW(r, h)/dh = -w(q)/h^2 + 1/h * dw(q)/dh by product rule
 // dw(q)/dh = dw(q)/dq * dq/dh
 double calc_dW_dh(const Particle &p_1, const Particle &p_2, double h) {
+    /*
+    double r_ij = std::abs(p_1.pos - p_2.pos);
+    double q = r_ij / h;
+    double dq_dh = -r_ij / std::pow(h, 2);
+    double dw_dh = dkernel_dq(q) * dq_dh;
+
+    double dcapitalW_dh = -kernel(q)/std::pow(h, 2) + dw_dh/h;
+
+    return dcapitalW_dh;
+    */
     double r_ij = p_1.pos - p_2.pos;
     double q = std::abs(r_ij) / h;
 
@@ -43,39 +53,8 @@ double calc_density_dh(const Particle &p, double h, const Particle* p_arr, int n
 
 double calc_omega(const Particle &p, ParticleArrayPtr p_arr, Config c) {
     #ifdef USE_VARIABLE_H
-    double o_sum = 0;
-    for (int i = 0; i < c.n_part; i++) {
-        Particle p_j = p_arr[i];
+    double o_sum = calc_density_dh(p, p.h, p_arr.get(), c.n_part);
 
-        double dW_dh = calc_dW_dh(p, p_j, p.h);
-        o_sum += p_j.mass * dW_dh;
-    }
-
-    double dh_drho = -p.h / p.density;
-    o_sum *= dh_drho;
-    return 1 - o_sum;
-    #endif
-    
-    #ifndef USE_VARIABLE_H
-    return 1;
-    #endif
-}
-
-double calc_omega(const Particle &p, const Particle* p_arr, int n_part) {
-    #ifdef USE_VARIABLE_H
-    double o_sum = 0;
-    for (int i = 0; i < n_part; i++) {
-        Particle p_j = *(p_arr + i);
-
-        double dW_dh = calc_dW_dh(p, p_j, p.h);
-        o_sum += p_j.mass * dW_dh;
-    }
-
-
-    // THE ISSUE: Price eq. 27 gives omega is 1 - dh/drho * sum(m_b * dW/dh). But isn't sum(m_b *
-    // dW/dh) equal to drho/dh? Thus dh/rho * drho/dh = 1, and 1-that = very small values that are
-    // then used in the denominator of pressure expressions in acceleration, leading to 10^16
-    // acceleration.
     double dh_drho = -p.h / p.density;
     o_sum *= dh_drho;
     return 1 - o_sum;
@@ -189,7 +168,6 @@ double rootfind_h_fallback(
 
 }
 
-// TODO: replace this entire thing with the other way in the PHANTOM paper?
 double rootfind_h(
     const Particle &p, 
     const ParticleArrayPtr p_arr,
@@ -215,8 +193,16 @@ double rootfind_h(
         &param
     };
 
-    double x0, x = 0.1;
-    
+    double x0, x;
+    // Use previous smoothing length as a first guess for the iteration
+    // That is, if it's not zero due to us currently setting up the initial smoothing lengths!
+    if (p.h > CALC_EPSILON) {
+        x0, x = p.h;
+    } else {
+        x0, x = 0.1;
+    }
+
+
     T = gsl_root_fdfsolver_newton;
     s = gsl_root_fdfsolver_alloc(T);
     gsl_root_fdfsolver_set(s, &f, x);
