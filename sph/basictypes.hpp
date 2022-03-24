@@ -21,13 +21,14 @@ enum PressureCalc {
 
 struct Config {
     int n_part;
-    int n_ghost; // Not set from ConfigReader
     double mass;
     PressureCalc pressure_calc;
     double limit;
     double v_0;
     double h_factor;
     double t_i;
+    // Runtime properties; not set from ConfigReader
+    int n_ghost; // Number of ghost particles
 };
 
 // ===== PARTICLES ===== 

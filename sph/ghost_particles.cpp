@@ -13,6 +13,9 @@
 #include "calculators.hpp"
 #include "kernel.hpp"
 
+// How much room is there at the end of the array for ghost particles?
+static int max_n_ghost = 0;
+
 void setup_ghost_particles(ParticleArrayPtr &p_arr, Config &config) {
     // Collect particles near the left and right boundary
     std::vector<Particle> ghost_particles;
@@ -69,36 +72,51 @@ void setup_ghost_particles(ParticleArrayPtr &p_arr, Config &config) {
     // Reallocate particle array
     // It's a bit easier to work with raw pointers when copying with data, so we switch back to
     // shared pointers later.
-    int n_ghost = ghost_particles.size();
+
+    int old_n_ghost = config.n_ghost;
+    int new_n_ghost = ghost_particles.size();
     int n_alive = config.n_part - config.n_ghost;
 
     Particle* old_ptr = p_arr.get();
     Particle* new_ptr;
 
-    // Reset particle counter before we allocate new ones, so we don't end up with constantly
-    // increasing particle ids
-    _particle_counter = 0;
+    // If we need more room in the array. There isn't really any point shrinking the array if we
+    // need less, as we may end up needing more in a future timestep... so this way we avoid having
+    // to carry out this procedure on most timesteps.
+    // The fact that we end up with empty/old memory at the end of the array doesn't matter, because
+    // we loop over it using i=0; i<n_part; i++ (rather than looking for a terminator etc) so these
+    // regions will be ignored.
 
-    try {
-        new_ptr = new Particle[n_alive + n_ghost];
-    } catch (std::bad_alloc &e) {
-        size_t bytes = (config.n_part + n_ghost) * sizeof(Particle);
-        std::cerr << "[ERROR] Failed to reallocate array for creation of ghost particles!" << std::endl;
-        std::cerr << "[ERROR] Attempted to allocate " << bytes << " bytes for " << n_alive
-                  << " particles and " << n_ghost << " ghost particles" << std::endl;
-        exit(1);
+    if (new_n_ghost > max_n_ghost) {
+        try {
+            new_ptr = new Particle[n_alive + new_n_ghost];
+        } catch (std::bad_alloc &e) {
+            size_t bytes = (config.n_part + new_n_ghost) * sizeof(Particle);
+            std::cerr << "[ERROR] Failed to reallocate array for creation of ghost particles!" << std::endl;
+            std::cerr << "[ERROR] Attempted to allocate " << bytes << " bytes for " << n_alive
+                      << " particles and " << new_n_ghost << " ghost particles" << std::endl;
+            exit(1);
+        }
+
+        // Copy over existing alive particles
+        std::copy(old_ptr, old_ptr + n_alive, new_ptr);
+
+        // Reinitialize shared ptr to use new_ptr; old_ptr is obsolete after copying the alive
+        // particles. This will free the memory taken by old_ptr as the smart pointer detects it is
+        // no longer in use (or more precisely will do so later once the Calculators no longer have
+        // references to it).
+        p_arr.reset(new_ptr);
+
+        std::cout << "[INFO] Reallocated particle array to resize ghost partition from "
+                  << max_n_ghost << " particles to " << new_n_ghost << " particles" << std::endl;
+        
+        max_n_ghost = new_n_ghost;
     }
 
-    std::copy(old_ptr, old_ptr + n_alive, new_ptr);
-
-    // Reinitialize shared ptr to use new_ptr; old_ptr is obsolete after copying the alive
-    // particles. This will free the memory taken by old_ptr as the smart pointer detects it is no
-    // longer in use.
-    p_arr.reset(new_ptr);
     // Copy over new ghost particles
     std::copy(ghost_particles.begin(), ghost_particles.end(), p_arr.get() + n_alive);
 
     // Update config values
-    config.n_ghost = n_ghost;
-    config.n_part = n_alive + n_ghost;
+    config.n_ghost = new_n_ghost;
+    config.n_part = n_alive + new_n_ghost;
 }
