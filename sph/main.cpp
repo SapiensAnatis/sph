@@ -3,25 +3,23 @@
  *
  * main.cpp contains the entrypoint for the program. All of the options are given in the config
  * file, due to my own personal trauma relating to invoking sph-NG setup by piping in a 20+ line
- * long text file without comments or parameter names. As a result, this entrypoint is brief and
- * contains no user input prompts.
+ * long text file without comments or parameter names to stdin. As a result, this entrypoint is
+ * brief and contains no user input prompts.
  *
- * It mainly serves to look for a command line argument asking for a different config file, and open
- * whichever config file to a readable stream that is given to parse_config.
- *
- * It has no corresponding header file as there is no need for the functions herein to be accessed
- * elsewhere.
+ * It looks for a command line argument asking for a different config file, and opens whichever
+ * config file to a readable stream that is given to parse_config. This generates the Config struct
+ * which is used everywhere else. The program then initializes an SPHSimulation object and the fun
+ * begins!
  */
 
 #include <string>
 #include <fstream>
 #include <iostream>
 #include <memory>
-#include <boost/smart_ptr/make_shared.hpp>
 
 #include "setup.hpp"
 #include "basictypes.hpp"
-#include "sph.hpp"
+#include "sph_simulation.hpp"
 
 
 int main(int argc, char* argv[]) {
@@ -32,6 +30,7 @@ int main(int argc, char* argv[]) {
         // Second argument; first is always program name
         filename = argv[1];
     } else {
+        // Assume it's in same directory
         filename = "./config.txt";
     }
     
@@ -52,13 +51,15 @@ int main(int argc, char* argv[]) {
     Config config = config_reader.GetConfig();
 
     // Allocate memory for particle array. Using a vector would've been way easier but I thought an
-    // array would be mOrE eFfIcIeNt and now I can't be bothered to change all the references of
-    // this type
+    // array would be mOrE eFfIcIeNt and now I can't be bothered to change it
     ParticleArrayPtr p_arr;
-
+    
     try {
-        p_arr = boost::make_shared<Particle[]>(config.n_part);
+        Particle* p_ptr = new Particle[config.n_part];
+        // Initialize shared pointer with this new memory
+        p_arr.reset(p_ptr);
     } catch (std::bad_alloc &e) {
+        // Memory allocation failed
         size_t bytes = config.n_part * sizeof(Particle);
 
         std::cerr << "[ERROR] Failed to allocate memory for particle array!" << std::endl;

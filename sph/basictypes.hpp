@@ -10,7 +10,6 @@
 
 #include <memory>
 #include <iostream>
-#include <boost/shared_ptr.hpp>
 
 // ===== CONFIG =====
 
@@ -117,6 +116,6 @@ struct Particle {
 };
 
 // Particle array
-typedef boost::shared_ptr<Particle []> ParticleArrayPtr;
+typedef std::shared_ptr<Particle []> ParticleArrayPtr;
 
 #endif
