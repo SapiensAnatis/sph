@@ -6,18 +6,28 @@
 
 #include <cstdio>
 #include <iostream>
+#include <filesystem> // Support for this is a bit questionable, but should work with recent g++
+#include <system_error>
 
-#include "sph.hpp"
-#include "define.hpp"
+#include "sph_simulation.hpp"
 #include "ghost_particles.hpp"
 
 void SPHSimulation::start(double end_time) {
-    // First calculate density and acceleration for all particles at t = 0
-    // Consecutive for loops: acceleration calculation requires that density is defined for every
-    // other particle (otherwise div by zero!)
-
-    // These print statements help to identify where the program has had an error, if one occurs.
     std::cout << "[INFO] Simulation time: " << current_time << " / " << end_time << std::endl;
+
+    if (!std::filesystem::exists("dumps")) {
+        std::error_code dir_ec;
+        std::filesystem::create_directory("dumps", dir_ec);
+        
+        if (dir_ec.value() != 0) {
+            std::cerr << "[ERROR] Failed to make directory ./dumps/ to store dump files." << std::endl;
+            std::cerr << "[ERROR] Error code " << dir_ec.value() << " with message " 
+                      << dir_ec.message()  << std::endl;
+            std::cerr << "[HINT] You can probably get around this by just making the directory ./dumps"
+                      << "manually..." << std::endl;
+            exit(1);
+        }
+    }
 
     // Initial densities/acceleration/pressure etc was handled in setup.cpp
     file_write();
@@ -33,8 +43,11 @@ void SPHSimulation::start(double end_time) {
     #ifndef SETUP_ONLY
     while (current_time < (end_time - CALC_EPSILON)) {
         current_time += timestep;
+        // These print statements help to identify where the program has had an error, should one
+        // occur.
         std::cout << "[INFO] Simulation time: " << current_time << " / " << end_time << std::endl;
         step_forward();
+        file_write();
     }
     #endif
 }
@@ -60,13 +73,14 @@ void SPHSimulation::step_forward() {
     }
 
     /*
+    // Artefacts of me debugging ghost-particle-induced segmentation faults
     std::cout << "p_arr pre-update: " << p_arr << std::endl;
     std::cout << "n_part pre-update: " << config.n_part << std::endl;
     */
 
     // Now that we've moved the particles, reinitialize ghost particles
     setup_ghost_particles(p_arr, config);
-    // Update calculators
+    // Update calculators with new n_part and possibly array pointer
     dc.update(config, p_arr);
     ac.update(config, p_arr);
     ec.update(config, p_arr);
@@ -91,19 +105,20 @@ void SPHSimulation::step_forward() {
         p.vel += p.acc * (timestep / 2);
         p.u += p.du_dt * (timestep / 2);
     }
-
-    file_write();
 }
 
 void SPHSimulation::file_write() {
-    // TODO: make this less hardcoded later
-    outstream.open("/home/jay/Dropbox/University/Y4/PHYM004/sph/dumps/" + std::to_string(dump_counter) + ".txt");
+    // Directory should hopefully have been made in start()
+    outstream.open("./dumps/" + std::to_string(dump_counter) + ".txt");
+
+    // File header
     outstream << "# This file was dumped at t = " << current_time << std::endl;
     outstream << "# Column definitions:" << std::endl;
     outstream << "# Particle ID / Type / Smoothing length / Density / Pressure / Acceleration / Velocity / Position / Thermal energy" << std::endl;
     outstream << "# Aligned definition 'tags' for easier reading:" << std::endl;
     outstream << "# ID    TYPE     H          DENSITY  PRESS    ACCEL     VEL       POS       U" << std::endl;
 
+    // Particle information
     for (int i = 0; i < config.n_part; i++) {
         Particle& p = p_arr[i];
         // Bit of C-style code here...
@@ -122,11 +137,4 @@ void SPHSimulation::file_write() {
     outstream.close();
 
     dump_counter++;
-}
-
-void SPHSimulation::dump_to_stdout() {
-    for (int i = 0; i < config.n_part; i++) {
-        Particle& p = p_arr[i];
-        std::cout << p.id << "\t" << p.density << "\t" << p.acc << "\t" << p.vel << "\t" << p.pos << std::endl;
-    }
 }

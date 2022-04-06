@@ -1,18 +1,19 @@
 /* 
  * PHYM004 Project 2 / Jay Malhotra
  *
- * sph.hpp defines the SPHSimulation object, which represents a run of the simulation by containing 
- * the current time, current timestep, Config, particle vector, etc. This interacts with the 
- * 'calculators' module to calculate the density and acceleration at each time-step and evolve the
- * latter by using an integrator.
+ * sph.hpp defines the SPHSimulation object, which represents a run of the simulation by containing
+ * the current time, current timestep, Config, particle vector, etc. This interacts with the
+ * 'calculators' module to calculate the density and acceleration, etc. at each time-step and
+ * evolves each particle's position, velocity and internal energy by using an integrator.
  */
 
-#ifndef sph_hpp
-#define sph_hpp
+#ifndef sph_simulation_hpp
+#define sph_simulation_hpp
 
-#include <iostream>
 #include <fstream>
 
+#include "define.hpp"
+#include "basictypes.hpp"
 #include "calculators.hpp"
 
 class SPHSimulation {
@@ -43,12 +44,9 @@ class SPHSimulation {
         // Step the simulation forward
         void step_forward();
 
-        // Write particle information to a file: "dumps/{dump_counter}.txt", and then increment
+        // Write particle information to a file: "./dumps/{dump_counter}.txt", and then increment
         // dump_counter
         void file_write();
-
-        // Dump particle information to stdout (for debugging)
-        void dump_to_stdout();
 
 };
 
