@@ -1,8 +1,7 @@
 /* 
  * PHYM004 Project 2 / Jay Malhotra
  *
- * calculators.cpp implements the class methods defined in calculators.hpp, and also has a few
- * free-floating non-exposed functions that are used by the GSL setup.
+ * calculators.cpp implements the class methods defined in calculators.hpp.
  */
 
 
@@ -48,12 +47,11 @@ void DensityCalculator::operator()(Particle &p) {
 #endif
 
 #ifndef USE_VARIABLE_H
-
+// Simplified density calculation method; does not call into root-finding
 void DensityCalculator::operator()(Particle &p) {
     double d_sum = calc_density(p, p.h, p_arr.get(), config.n_part);
     p.density = d_sum;
 }
-
 #endif
 
 #pragma endregion
@@ -154,6 +152,7 @@ double AccelerationCalculator::artificial_viscosity(
     double h,
     double c_s
 ) {
+    // Bate eq. 2.31, 2.32
     double v_ij = p_i.vel - p_j.vel;
     double dot = v_ij * r_ij;
     
@@ -173,6 +172,11 @@ double AccelerationCalculator::artificial_viscosity(
 }
 
 void AccelerationCalculator::ensure_nonzero_density(const Particle &p) {
+    // This method is something of an artefact from when I was forgetting to include self-density,
+    // and a particle without neighbours would have zero density and start introducing NaNs into
+    // the data. That said, it's been helpful to keep around even if zero density can never 
+    // occur in theory, because it does a good job of catching memory errors -- an uninitialized
+    // particle's position double is often something like 2.41255152E-315 which trips this detection
     if (p.density < CALC_EPSILON) {
         std::cerr << "[ERROR] Particle had density less than epsilon " << CALC_EPSILON << std::endl;
         std::cerr << "[ERROR] Particle id: " << p.id << " has density: " << p.density << std::endl;
@@ -186,7 +190,7 @@ void AccelerationCalculator::ensure_nonzero_density(const Particle &p) {
 #pragma region EnergyCalculator
 
 void EnergyCalculator::operator()(Particle &p) {
-    // Price 2012 eqn. 35
+    // Bate eq. 2.37, with omega parameters shoved in...probably not correct
     double omega = calc_omega(p, p_arr, config);
     double Pr_rho = p.pressure / (omega * std::pow(p.density, 2));
 

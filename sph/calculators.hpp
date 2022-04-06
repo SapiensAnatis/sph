@@ -27,7 +27,7 @@ class Calculator {
             throw new std::logic_error("Attempt to call un-implemented operator() function!");
         }
         // Update function: supply new pointer and config (due to ghost particle reinitialization
-        // reallocating the array and changing config.n_part)
+        // changing config.n_part and possibly reallocating the array)
         void update(Config c, ParticleArrayPtr p_arr_ptr) {
             config = c;
             p_arr.swap(p_arr_ptr);

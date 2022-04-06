@@ -17,8 +17,13 @@
 #pragma region ConfigParsing
 
 ConfigReader::ConfigReader(std::istream &config_stream) {
+    // Read filestream. ConfigMap is a <string, string> map of <propertyname, value>.
     ConfigMap config_map = parse_config(config_stream);
     
+    // Set properties. set_property is a method with a number of overloads, that looks up a string
+    // property name in the ConfigMap and then converts the associated value to an appropriate
+    // datatype (such as int or double) based on the type of the first argument, which is passed by
+    // reference. In short, this initializes the values of the 'config' struct object.
     set_property(config.n_part, config_map, "n_part");
     set_property(config.mass, config_map, "mass");
     set_property(config.pressure_calc, config_map, "pressure_calc");
@@ -32,6 +37,7 @@ ConfigReader::ConfigReader(std::istream &config_stream) {
 }
 
 Config ConfigReader::GetConfig() {
+    // 
     return config;
 }
 
@@ -184,9 +190,6 @@ void init_particles(Config &config, ParticleArrayPtr &p_arr)
     auto ac = AccelerationCalculator(config, p_arr);
 
     if (config.pressure_calc == Adiabatic) {
-        // Calculate sound speed
-        // Requires: calculating pressure and density. Calculating pressure requires calculating
-        // acceleration.
         for (int i = 0; i < config.n_part; i++) {
             dc(p_arr[i]);
         }
@@ -197,6 +200,8 @@ void init_particles(Config &config, ParticleArrayPtr &p_arr)
             p_arr[i].vel = (p_arr[i].pos < 0) ? c_s : -c_s;
         }
     }
+
+    std::cout << "[INFO] Allocated " << config.n_part << " alive particles." << std::endl;
     
     // Next step: setup ghost particles. 
     setup_ghost_particles(p_arr, config);

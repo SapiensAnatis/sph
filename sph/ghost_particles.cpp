@@ -20,15 +20,20 @@ void setup_ghost_particles(ParticleArrayPtr &p_arr, Config &config) {
     // Collect particles near the left and right boundary
     std::vector<Particle> ghost_particles;
 
-    // For current quartic kernel this should be 1.25 smoothing lengths, but other kernels may have
-    // this as 1 smoothing length
-    double half_k_radius = KERNEL_RADIUS;
-
+    // For current quartic kernel this should be 2.5 smoothing lengths. Defined in kernel.hpp.
+    
+    // In theory you should only check for particles within half the radius of the boundary, since
+    // mirroring a particle that is farther away than that will not affect said particle. However,
+    // I found that particles near the edge needed their neigbours as well as themselves replicated
+    // to preserve the boundary conditions.
+    double radius = KERNEL_RADIUS;
+    
     for (int i = 0; i < config.n_part; i++) {
         Particle p = p_arr[i];
         if (p.type == Ghost)
             continue;
 
+        // Sanity check; smoothing length may be uninitialized
         if (p.h < CALC_EPSILON) {
             std::cerr << "[ERROR] Error in ghost particle initialization: Particle id " << p.id 
                       << " has smoothing length " << p.h << std::endl;
@@ -40,8 +45,8 @@ void setup_ghost_particles(ParticleArrayPtr &p_arr, Config &config) {
         // If a particle's distance to either boundary is greater than half the truncation radius of
         // the kernel, then it would not be affected by a mirrored ghost particle if were one to be
         // created.
-        double max_pos = config.limit - (half_k_radius * p.h);
-        double min_pos = -config.limit + (half_k_radius * p.h);
+        double max_pos = config.limit - (radius * p.h);
+        double min_pos = -config.limit + (radius * p.h);
 
         if (p.pos > max_pos || p.pos < min_pos) {
             // Add copy of p to vector
@@ -49,45 +54,35 @@ void setup_ghost_particles(ParticleArrayPtr &p_arr, Config &config) {
         }
     }
 
-    // Change copies so that they have inverted velocities and mirrored positions, also correct type
+    // Change copies so that they have inverted velocities, mirrored positions, and correct type
     for (Particle &p : ghost_particles) {
-        // Add twice the vector joining the particle and boundary to the new particle, so it is
-        // mirrored around the boundary.
-        double vec, vel;
+        double vec;
         if (p.pos < 0) {
             // Left border
             vec = -config.limit - p.pos;
-            vel = -1;
         } else {
             // Right border
             vec = config.limit - p.pos;
-            vel = 1;
         }
 
+        // Mirror around boundary by adding 2*(vector joining particle and boundary) to its position
         p.pos += 2 * vec;
-        p.vel = vel;
+        p.vel *= -1;
         p.type = Ghost;
     }
 
-    // Reallocate particle array
-    // It's a bit easier to work with raw pointers when copying with data, so we switch back to
-    // shared pointers later.
-
-    int old_n_ghost = config.n_ghost;
     int new_n_ghost = ghost_particles.size();
     int n_alive = config.n_part - config.n_ghost;
 
-    Particle* old_ptr = p_arr.get();
-    Particle* new_ptr;
-
-    // If we need more room in the array. There isn't really any point shrinking the array if we
-    // need less, as we may end up needing more in a future timestep... so this way we avoid having
-    // to carry out this procedure on most timesteps.
-    // The fact that we end up with empty/old memory at the end of the array doesn't matter, because
-    // we loop over it using i=0; i<n_part; i++ (rather than looking for a terminator etc) so these
-    // regions will be ignored.
-
     if (new_n_ghost > max_n_ghost) {
+        /* 
+         * If we need more room in the array. There isn't really any point shrinking the array if we
+         * need less, as we may end up needing more in a future timestep... so this way we avoid
+         * having to carry out this procedure on most timesteps.
+         */
+        Particle* old_ptr = p_arr.get();
+        Particle* new_ptr;
+
         try {
             new_ptr = new Particle[n_alive + new_n_ghost];
         } catch (std::bad_alloc &e) {
@@ -103,12 +98,11 @@ void setup_ghost_particles(ParticleArrayPtr &p_arr, Config &config) {
 
         // Reinitialize shared ptr to use new_ptr; old_ptr is obsolete after copying the alive
         // particles. This will free the memory taken by old_ptr as the smart pointer detects it is
-        // no longer in use (or more precisely will do so later once the Calculators no longer have
-        // references to it).
+        // no longer in use
         p_arr.reset(new_ptr);
 
-        std::cout << "[INFO] Reallocated particle array to resize ghost partition from "
-                  << max_n_ghost << " particles to " << new_n_ghost << " particles" << std::endl;
+        std::cout << "[INFO] Array reallocated to resize ghost partition from " << max_n_ghost 
+                  << " to " << new_n_ghost << " particles." << std::endl;
         
         max_n_ghost = new_n_ghost;
     }

@@ -33,7 +33,10 @@ class ConfigReader {
         // Ctor reads stream and initializes Config object
         ConfigReader(std::istream &config_stream);
         
-        // Return determined Config object
+        // Return determined Config object. ALmost every context within the program requires the
+        // config value (basically because we always need to know n_part to loop through the C-style
+        // array), so it is advantageous to 'shed' the extraneous parts of the ConfigReader class
+        // and just return the struct values which are then passed around.
         Config GetConfig();
     private:
         // parse_config: takes in a stream of the config file, and creates a <string, string> map of
@@ -51,7 +54,7 @@ class ConfigReader {
         static void set_property(double &prop, ConfigMap &config_map, const std::string &prop_name);
         static void set_property(PressureCalc &prop, ConfigMap &config_map, const std::string &prop_name);
 
-        // Data
+        // Data structure.
         Config config;
 };
 
