@@ -20,11 +20,8 @@ dumps/*
 # Plots
 plots/*
 
-# Report temp files (whitelist)
+# Report 
 report/*
-*.pdf
-*.pdf_tex
-report/*.pdf
 
 # config.txt is in the repo, but should stop being in every commit
 config.txt
